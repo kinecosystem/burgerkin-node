@@ -17,9 +17,11 @@ router.get('/login', async function(req, res, next) {
     let player_name = ""
     const client = new KinClient(Environment.Testnet);
     try {
-      const pk = ""
+      console.log("0")
       const account = await client.createKinAccount({ seed: 'SC2RWEIWGJNKULQXSGM5J37RP3N5U6LHDURIHE6NBG5X6XOSIHBMMTQS', appId:'bkin' });
-      const createAccountBuilder = await account.buildCreateAccount({ address: public_key, startingBalance: 50,fee: 0, memoText: '1-bkin'})
+      console.log("1")
+      const createAccountBuilder = await account.buildCreateAccount({ address: public_key, startingBalance: 1000,fee: 100, memoText: '1-bkin'})
+      console.log("3")
       const result = await account.submitTransaction(createAccountBuilder)
       res.json(account)
     }
