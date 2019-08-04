@@ -13,17 +13,18 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/login', async function(req, res, next) {
-    let public_key = ""
+    let public_key = "GDESKVL37Y26EV7YQGTKCB56ZTHAXLLDPYUCSQJSKKHIIQ5SWFZKKUSH"
     let player_name = ""
     const client = new KinClient(Environment.Testnet);
     try {
+      const pk = ""
       const account = await client.createKinAccount({ seed: 'SC2RWEIWGJNKULQXSGM5J37RP3N5U6LHDURIHE6NBG5X6XOSIHBMMTQS', appId:'bkin' });
-      const result = await account.buildCreateAccount({ address: public_key, startingBalance: 10,fee: 0, memoText: '1-bkin'})
+      const createAccountBuilder = await account.buildCreateAccount({ address: public_key, startingBalance: 50,fee: 0, memoText: '1-bkin'})
+      const result = await account.submitTransaction(createAccountBuilder)
+      res.json(account)
     }
     catch (error) {
        res.render('error', { message:error.message, error: error });
     }
-    console.log(result)
 });
-
 module.exports = router;
