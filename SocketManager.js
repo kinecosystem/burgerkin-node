@@ -1,8 +1,7 @@
-const rekuire = require('rekuire')
-const eventEmitter = rekuire('Emitter.js')
-var ActionResult = require('./ActionResult.js')
 var socketByUserId = {}
 module.exports = function (server,options) {
+
+    console.log("ok")
     io = require('socket.io')(server)
     io.use(async function(socket, next){
         if (socket.handshake.query && socket.handshake.query.token) {
