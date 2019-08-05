@@ -5,8 +5,8 @@ const blockchain = require('../core/blockchain')
 
 router.get('/login', async function(req, res, next) {
     const public_key = req.query.public_key
-    if (public_key === undefined || public_key === '') { res.status(400).send('public_key could not be empty') }
-
+    if (!public_key) { return res.status(400).send('public_key could not be empty') }
+    
     try {
       const isAccountExists = await blockchain.isAccountExisting(public_key)
       console.log("isAccountExists -> " + isAccountExists)
