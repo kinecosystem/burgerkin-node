@@ -15,6 +15,7 @@ router.get('/', function(req, res, next) {
 router.get('/login', async function(req, res, next) {
     let public_key = "GDESKVL37Y26EV7YQGTKCB56ZTHAXLLDPYUCSQJSKKHIIQ5SWFZKKUSH"
     let player_name = ""
+
     const client = new KinClient(Environment.Testnet);
     try {
       console.log("0")
