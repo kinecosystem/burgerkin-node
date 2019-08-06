@@ -14,14 +14,20 @@ let Game = require('./Game')
 //
 // M o d e l
 //
-var socketByUserId = {}
-var games = []
-var gamesPending = []
 
-function action(action,caller,value) {
+var games = []
+var gamesByUserId = {}
+
+function action({action,callerId,value}) {
+    console.log("action",action)
     switch (action) {
         case "join":
-        console.log("action join")
+        if(!gamesByUserId[callerId]) {
+            const game = new Game()
+            game.players.push(callerId)
+            games.push(game)
+            gamesByUserId[callerId] = game
+        }
         break
 
         case "turn":
@@ -36,8 +42,14 @@ function action(action,caller,value) {
 
         //Optional
         case "leave":
+        const game = gamesByUserId[callerId]
+        if(game && game.players.length < 2) {
+            delete gamesByUserId[callerId]
+            games = games.filter( g => g == game)
+        }
         break
     }
+    console.log(gamesByUserId,games)
 } 
 
 const allowedUserActions = ['flip']
@@ -67,13 +79,16 @@ module.exports = function (server,options) {
     //     }
     // }) 
     io.on('connection',function (socket,next) {
-        if (socket.handshake.query && socket.handshake.query.public_id && socket.handshake.query.name) {
-            action('join', socket.handshake.query.public_id, socket.handshake.query.name)
+        if (socket.handshake.query && socket.handshake.query.token && socket.handshake.query.name) {
+            action({action:'join', callerId:socket.handshake.query.public_id, value:socket.handshake.query.name})
         }
         socket.on('action',async function (action,value,cb) { 
-            if( allowedUserActions.indexOf(action) &&socketByUserId[socket.handshake.query.public_id] ) {
+            if( allowedUserActions.indexOf(action) && socketByUserId[socket.handshake.query.public_id] ) {
                 try {
-                    let result = await action(action,socket.handshake.query.public_id,value)
+                    console.log("a")
+                    let result = await action({ action:action,
+                                                callerId:socket.handshake.query.public_id,
+                                                value:value})
                     if(cb)
                         cb(result)
                 }
@@ -84,6 +99,7 @@ module.exports = function (server,options) {
             }
         })
         socket.on('disconnect',async function() {
+            action({action:"leave",callerId:socket.handshake.query.token})
             // try { await rekuire('Engine.js').actionNew(socket.game,'leave',socket.userId) } catch(err){}
             // delete socketByUserId[socket.userId]  
         })

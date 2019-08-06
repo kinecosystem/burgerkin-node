@@ -1,0 +1,26 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+console.log(location.href)
+console.log('user token',window.name)
+  var socket = io.connect(location.href, {query: 'token=alonbalon&name=Alon'})
+  socket.on('connect', data => {
+    console.log('socket connected', data)
+  })
+  socket.on('disconnect', data => {
+    console.log('socket disconnect')
+  })
+  socket.on('action', data => {
+    if(data.stateTimeout) {
+      data.stateTimeout =  ( data.stateTimeout - new Date().getTime())/1000
+    }
+  })
+  var sendAction = (action,value,callback) => {
+    console.log("sending action",action)
+    socket.emit('action',action, value, result => { 
+        console.log("callback",result)
+      if(callback)
+        callback(result)
+    })
+    return `Action ${action} sent`
+  }
+</script>
