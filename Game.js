@@ -27,5 +27,10 @@ class Game {
         }
         return array;
     }
+    copyWithHiddenBoard() {
+        let cpy = JSON.parse(JSON.stringify(this))
+        cpy.board = cpy.board.map( item => { return Math.min(item,0) } )
+        return cpy
+    }
 }
 module.exports = Game
