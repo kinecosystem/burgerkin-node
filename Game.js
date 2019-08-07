@@ -1,18 +1,19 @@
 let config = require('./config')
+var { newId } = require("uuid-pure")
 
 let symbols = []
 for(var i = 0; i < config.board_width * config.board_height / 2.0; i++) {
-    symbols.push(i)
-    symbols.push(i)
+    symbols.push(i + 1)
+    symbols.push(i + 1)
 }
 
 class Game {
     constructor() {
-        this.state = null
-        this.id = null
+        this.id = newId(5)
+        this.state = 'pending'
         this.players = []
-        this.value = null
-        this.action = null
+        this.flipped = []
+        this.turn = null
         this.board = this.shuffle(JSON.parse(JSON.stringify(symbols)))
     }
     shuffle(array) {

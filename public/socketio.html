@@ -1,8 +1,12 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
-console.log(location.href)
-console.log('user token',window.name)
-  var socket = io.connect(location.href, {query: 'token=alonbalon&name=Alon'})
+
+  console.log(window.localStorage.getItem("lastname"))
+  window.localStorage.setItem("lastname", "Smith");
+
+  console.log(location.href)
+  console.log('token',window.name)
+  var socket = io.connect(location.href, {query: 'token='+window.name+'&name=Dubim'})
   socket.on('connect', data => {
     console.log('socket connected', data)
   })
@@ -10,10 +14,9 @@ console.log('user token',window.name)
     console.log('socket disconnect')
   })
   socket.on('action', data => {
-    if(data.stateTimeout) {
-      data.stateTimeout =  ( data.stateTimeout - new Date().getTime())/1000
-    }
+    console.log('action',data)
   })
+  var setToken = token => window.name = token
   var sendAction = (action,value,callback) => {
     console.log("sending action",action)
     socket.emit('action',action, value, result => { 
