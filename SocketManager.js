@@ -7,11 +7,11 @@ const allowedUserActions = ['flip','echo','join']
 
 process.stdout.write('\033c');
 process.stdout.write('\x1Bc'); 
-setInterval(() => {
-    process.stdout.write('\033c');
-process.stdout.write('\x1Bc'); 
-    console.log( "*",games,Object.keys(gamesByUserId))
-}, 2000);
+// setInterval(() => {
+//     process.stdout.write('\033c');
+// process.stdout.write('\x1Bc'); 
+//     console.log( "*",games,Object.keys(gamesByUserId))
+// }, 2000);
 
 async function doAction({action,callerId,value,socket}) {
     console.log(action,callerId,value)
