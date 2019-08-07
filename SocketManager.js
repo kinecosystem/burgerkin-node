@@ -14,7 +14,7 @@ process.stdout.write('\x1Bc');
 }, 2000);
 
 async function doAction({action,callerId,value,socket}) {
-    console.log(action)
+    console.log(action,callerId,value)
     var game = gamesByUserId[callerId]
     switch (action) {
         case "join":
@@ -132,7 +132,7 @@ module.exports = function (server,options,cb) {
             console.log("socket recieved aciton",action,value, socket.isAuthorized)
             if( socket.isAuthorized && allowedUserActions.indexOf(action) > -1 ) {
                 try {
-                    console.log("a")
+                    
                    let result = await doAction({action:action,callerId:socket['token'], value:value,socket:socket})
                 
                     if(cb)
