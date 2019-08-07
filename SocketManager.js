@@ -3,7 +3,7 @@ let Game = require('./Game')
 const self = this
 var games = []
 var gamesByUserId = {}
-const allowedUserActions = ['flip','echo']
+const allowedUserActions = ['flip','echo','join']
 
 process.stdout.write('\033c');
 process.stdout.write('\x1Bc'); 
@@ -14,10 +14,11 @@ process.stdout.write('\x1Bc');
 }, 2000);
 
 async function doAction({action,callerId,value,socket}) {
-    
+    console.log(action)
     var game = gamesByUserId[callerId]
     switch (action) {
         case "join":
+           
         if(!game) {
             const pendingGames = games.filter(game => game.state == 'pending')
             if(pendingGames.length) {
@@ -128,9 +129,10 @@ module.exports = function (server,options,cb) {
             socket.disconnect()
         }
         socket.on('action',async function (action,value,cb) { 
-            // console.log("socket recieved aciton",action,value, socket.isAuthorized,allowedUserActions.indexOf(action) >)
+            console.log("socket recieved aciton",action,value, socket.isAuthorized)
             if( socket.isAuthorized && allowedUserActions.indexOf(action) > -1 ) {
                 try {
+                    console.log("a")
                    let result = await doAction({action:action,callerId:socket['token'], value:value,socket:socket})
                 
                     if(cb)
