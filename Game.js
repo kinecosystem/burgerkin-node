@@ -16,7 +16,6 @@ class Game {
         this.turn = null
         this.boardSize = [config.board_width,config.board_height]
         this.board = this.shuffle(JSON.parse(JSON.stringify(symbols)))
-        console.log(this.board)
     }
     shuffle(array) {
         var currentIndex = array.length, temporaryValue, randomIndex;

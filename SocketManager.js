@@ -1,25 +1,30 @@
 let config = require('./config')
 let Game = require('./Game')
 let Player = require('./Player')
+const blockchain = require('./core/blockchain')
 var games = []
 var gamesByUserId = {}
 const allowedUserActions = ['flip','echo','join']
 
 process.stdout.write('\033c');
 process.stdout.write('\x1Bc'); 
-setInterval(() => {
-    process.stdout.write('\033c');
-process.stdout.write('\x1Bc'); 
-    console.log( "*",games,Object.keys(gamesByUserId))
-}, 2000);
+if(config.monitor_tables) {
+    setInterval(() => {
+        process.stdout.write('\033c');
+        process.stdout.write('\x1Bc'); 
+        console.log( "*",games,Object.keys(gamesByUserId))
+    }, 2000);
+}
 
 async function doAction({action,callerId,value,socket}) {
     console.log(action,callerId,value)
     var game = gamesByUserId[callerId]
     switch (action) {
         case "join":
-         if( !callerId ) throw new Error("Missing callerId")
-         
+        if( !callerId ) throw new Error("Missing callerId")
+        const result = await blockchain.isAccountExisting(callerId)
+        if(!result) throw new Error("Ivalid public id")
+     
         if(!game) {
             const pendingGames = games.filter(game => game.state == 'pending')
             if(pendingGames.length) {

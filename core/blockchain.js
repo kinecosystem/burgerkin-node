@@ -17,12 +17,17 @@ async function getMasterAccount() {
 }
 
 async function isAccountExisting(wallet_address) {
-  console.log("isAccountExisting -> " + wallet_address)
-  return await client.isAccountExisting(wallet_address)
+  try {
+    const result = await client.isAccountExisting(wallet_address)
+    return true
+  }
+  catch(error) {
+    return false
+  }
+  return result
 }
 
 async function createAccount(wallet_address) {
-  
   console.log("buildCreateAccount -> " + wallet_address)
   // Sign the account creation transaction
   const masterAccount = await getMasterAccount()
