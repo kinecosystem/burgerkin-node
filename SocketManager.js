@@ -1,15 +1,14 @@
 let config = require('./config')
 const gameEngine = require('./gameEngine')
-
 const allowedUserActions = ['flip','echo','join']
-
+const jclrz = require('json-colorz')
 if(config.monitor_tables) {
     process.stdout.write('\033c');
     process.stdout.write('\x1Bc'); 
     setInterval(() => {
         process.stdout.write('\033c');
         process.stdout.write('\x1Bc'); 
-        console.log( "*",gameEngine.getGames())
+        jclrz(gameEngine.getGames())
     }, 2000);
 }
 
@@ -27,13 +26,11 @@ module.exports = function (server,options,cb) {
                 //console.log(socket.handshake.query.token ,socket.handshake.query.name)
                 let game = await gameEngine.doAction({ action:'join', callerId: socket.handshake.query.token ,value:socket.handshake.query.name,socket:socket })
                 socket.gameId = game.id
-
                 socket.join(game.id)
                 socket.token = socket.handshake.query.token
-                io.to(game.id).emit("action",{action:'join', callerId:socket.token}) 
+                io.to(game.id).emit("action",{action:'join', callerId:socket.token,value:game}) 
             }
             catch(error) {
-                console.log(error)
                 socket.disconnect()
             }
         } else {
@@ -46,7 +43,8 @@ module.exports = function (server,options,cb) {
                    let result = await gameEngine.doAction({action:action,callerId:socket['token'], value:value,socket:socket})    
                     if(cb)
                        cb(result)
-                      roomEmit({socket:socket,action:action,result:result})
+                       if(socket.gameId) 
+                            io.to(socket.gameId).emit("action",{action:action,callerId:socket.token ,value:{result}}) 
                 }
                 catch(error) {
                     if(cb)

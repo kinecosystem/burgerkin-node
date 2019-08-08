@@ -7,7 +7,6 @@ var games = []
 var gamesByUserId = {}
 var io
 function roomEmit({socket,action,sender = "server",result}) {
-    
     if(socket.gameId) 
         io.to(socket.gameId).emit("action",{action:action,callerId:sender,value:result}) 
 }
@@ -17,13 +16,11 @@ module.exports = {
     getGames: () => { return games },
     doAction: async ({action,callerId,value,socket}) => {
         console.log("doAction",action,callerId,value)
-        console.log(module.exports.doAction)
         var game = gamesByUserId[callerId]
         switch (action) {
             case "join":
             if( !callerId ) throw new Error("Missing callerId")
             const result = await blockchain.isAccountExisting(callerId)
-            console.log("*/",result)
             if(!result) throw new Error("Invalid public id")
          
             if(!game) {
@@ -46,7 +43,6 @@ module.exports = {
                 game = game.copyWithHiddenBoard()
                 if(game.state == 'pending' && game.players.length == 2) {
                     setTimeout( async function() {
-                        
                         let result = await module.exports.doAction({action:'turn',callerId:callerId,socket:socket})
                         roomEmit({socket:socket,action:"turn",result:result})
                 }, 1000);
@@ -92,8 +88,11 @@ module.exports = {
             case "result":
             const match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
             if(match) { 
-                game.flipped.forEach( i => { game.board[i] = null  })    
+                game.flipped.forEach( i => { game.board[i] = null  })  
+                let player = game.players.filter( player => { player.id == callerId })[0]
+                player.score += 1
             }
+            
             setTimeout( async function() { 
                 if( game.cardsLeft() > 1 ) {
                     let result = await module.exports.doAction({action:'turn',callerId:callerId,socket:socket})
@@ -104,7 +103,7 @@ module.exports = {
                     roomEmit({  socket:socket, action:"win", result:result})
                 }
             }, 2000);
-            return  {match:match, positions:game.flipped}
+            return  { match:match, positions:game.flipped }
     
             case "win":
             var winnerId = game.players[0].score > game.players[1].score ? game.players[0].id : game.players[1].id
@@ -117,7 +116,7 @@ module.exports = {
             //Optional
             case "leave":
             if( game && game.state == 'pending') {
-                const i = game.player.map( player => { return player.id; }).indexOf(callerId);
+                const i = game.players.map( player => { return player.id; }).indexOf(callerId);
                 game.players.splice(i,1)
                 delete gamesByUserId[callerId]
                 if(!game.players.length) 
