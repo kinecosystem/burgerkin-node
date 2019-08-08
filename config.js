@@ -1,7 +1,8 @@
 module.exports = { master_public_address: 'GCUOZGHMN7XEGIDDCKDXWP732E2GKCYTBPSLY7PPJLDVBIBSKZUVPYTB',
                    master_seed: 'SC2RWEIWGJNKULQXSGM5J37RP3N5U6LHDURIHE6NBG5X6XOSIHBMMTQS',
                    appId: 'bkin',
-                   board_width: 4,
-                   board_height: 5,
-                   monitor_tables:false
+                   board_width: 2,
+                   board_height: 2,
+                   monitor_tables:true,
+                   game_fee:10
                 };
