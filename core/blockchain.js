@@ -24,7 +24,6 @@ async function isAccountExisting(wallet_address) {
   catch(error) {
     return false
   }
-  return result
 }
 
 async function createAccount(wallet_address) {

@@ -108,6 +108,7 @@ async function doAction({action,callerId,value,socket}) {
         var winnerId = game.players[0].score > game.players[1].score ? game.players[0].id : game.players[1].id
         game.players.forEach( player => { delete gamesByUserId[player.id] })
         games.splice(games.indexOf(game),1)
+       // let paymentResult = await blockchain.payToUser(winnerId,config.game_fee)
         return winnerId
 
         break
