@@ -90,7 +90,6 @@ module.exports = {
             var player = null
 
             if(match) { 
-                console.log("callerId",callerId)
                 game.flipped.forEach( i => { game.board[i] = null  })  
                 p = game.players.filter( player => player.id == callerId)[0]
                 p.score += 1
@@ -110,12 +109,12 @@ module.exports = {
             return  { match:match, positions:game.flipped,player:p}
     
             case "win":
+            console.log("win")
             var winnerId = game.players[0].score > game.players[1].score ? game.players[0].id : game.players[1].id
             game.players.forEach( player => { delete gamesByUserId[player.id] })
             games.splice(games.indexOf(game),1)
-            let paymentResult = await blockchain.payToUser(winnerId,config.game_fee)
-            return swinnerId
-    
+            blockchain.payToUser(winnerId,config.game_fee)
+            return winnerId
             break
             //Optional
             case "leave":

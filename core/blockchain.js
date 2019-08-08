@@ -22,7 +22,6 @@ async function isAccountExisting(wallet_address) {
     return result
   }
   catch(error) {
-    console.log(error)
     return result
   } 
 }
@@ -45,7 +44,7 @@ async function createAccount(wallet_address) {
 }
 
 async function payToUser(wallet_address, amount) {
-  console.log("payToUser -> " + wallet_address + " with amount = " + amount)
+  //console.log("payToUser -> " + wallet_address + " with amount = " + amount)
   const masterAccount = await getMasterAccount()
   const transactionBuilder = await masterAccount.buildSendKin({
     address: wallet_address,
