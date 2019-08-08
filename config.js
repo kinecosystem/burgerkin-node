@@ -3,6 +3,6 @@ module.exports = { master_public_address: 'GCUOZGHMN7XEGIDDCKDXWP732E2GKCYTBPSLY
                    appId: 'bkin',
                    board_width: 2,
                    board_height: 2,
-                   monitor_tables:true,
+                   monitor_tables:false,
                    game_fee:10
                 };
