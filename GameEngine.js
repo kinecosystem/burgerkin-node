@@ -87,10 +87,13 @@ module.exports = {
            
             case "result":
             const match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
+            var player = null
+
             if(match) { 
+                console.log("callerId",callerId)
                 game.flipped.forEach( i => { game.board[i] = null  })  
-                let player = game.players.filter( player => { player.id == callerId })[0]
-                player.score += 1
+                p = game.players.filter( player => player.id == callerId)[0]
+                p.score += 1
             }
             
             setTimeout( async function() { 
@@ -102,15 +105,16 @@ module.exports = {
                     let result = await module.exports.doAction({action:'win',callerId:callerId,socket:socket})
                     roomEmit({  socket:socket, action:"win", result:result})
                 }
-            }, 2000);
-            return  { match:match, positions:game.flipped }
+            }, 3000);
+
+            return  { match:match, positions:game.flipped,player:p}
     
             case "win":
             var winnerId = game.players[0].score > game.players[1].score ? game.players[0].id : game.players[1].id
             game.players.forEach( player => { delete gamesByUserId[player.id] })
             games.splice(games.indexOf(game),1)
-           // let paymentResult = await blockchain.payToUser(winnerId,config.game_fee)
-            return winnerId
+            let paymentResult = await blockchain.payToUser(winnerId,config.game_fee)
+            return swinnerId
     
             break
             //Optional
