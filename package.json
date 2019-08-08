@@ -14,6 +14,8 @@
     "jade": "~1.11.0",
     "morgan": "~1.9.1",
     "redis": "^2.8.0",
-    "socket.io": "^2.2.0"
+    "socket.io": "^2.2.0",
+    "socket.io-redis": "^5.2.0",
+    "uuid-pure": "^1.0.10"
   }
 }

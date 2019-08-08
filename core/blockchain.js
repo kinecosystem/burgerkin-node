@@ -3,6 +3,7 @@ const Environment = require('@kinecosystem/kin-sdk-node').Environment;
 const config = require('../config')
 
 const client = new KinClient(Environment.Testnet);
+
 let masterAccount
 
 async function getMasterAccount() {
@@ -16,8 +17,14 @@ async function getMasterAccount() {
 }
 
 async function isAccountExisting(wallet_address) {
-  console.log("isAccountExisting -> " + wallet_address)
-  return await client.isAccountExisting(wallet_address)
+  try {
+    const result = await client.isAccountExisting(wallet_address)
+    return true
+  }
+  catch(error) {
+    return false
+  }
+  return result
 }
 
 async function createAccount(wallet_address) {

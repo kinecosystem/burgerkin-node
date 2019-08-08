@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+
 const Redis = require('redis')
 const blockchain = require('../core/blockchain')
 const config = require('../config')
