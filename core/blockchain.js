@@ -19,12 +19,11 @@ async function getMasterAccount() {
 async function isAccountExisting(wallet_address) {
   try {
     const result = await client.isAccountExisting(wallet_address)
-    return true
+    return result
   }
   catch(error) {
     return false
   }
-  return result
 }
 
 async function createAccount(wallet_address) {
