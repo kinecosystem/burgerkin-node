@@ -15,6 +15,7 @@ router.get('/login', async function(req, res, next) {
       if (!isAccountExists) {
         await blockchain.createAccount(public_key)
       }
+
       res.setHeader('Content-Type', 'application/json');
       res.status(200).send(JSON.stringify({ wallet_address: config.master_public_address}))
     }

@@ -19,12 +19,11 @@ async function getMasterAccount() {
 async function isAccountExisting(wallet_address) {
   try {
     const result = await client.isAccountExisting(wallet_address)
-    return true
+    return result
   }
   catch(error) {
     return false
   }
-  return result
 }
 
 async function createAccount(wallet_address) {
@@ -42,7 +41,32 @@ async function createAccount(wallet_address) {
   await masterAccount.submitTransaction(createAccountTransaction)
 }
 
+async function payToUser(wallet_address, amount) {
+  console.log("payToUser -> " + wallet_address + " with amount = " + amount)
+  const masterAccount = await getMasterAccount()
+  const transactionBuilder = await masterAccount.buildSendKin({
+    address: wallet_address,
+    amount: amount,
+    fee: 100,
+    memoText: createID(10)
+  })
+
+  await masterAccount.submitTransaction(transactionBuilder)
+  console.log("payToUser submitTransaction -> ", transactionBuilder)
+}
+
+function createID(length) {
+  var result = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&';
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result
+}
+
 module.exports = {
   isAccountExisting,
-  createAccount
+  createAccount,
+  payToUser
 }
