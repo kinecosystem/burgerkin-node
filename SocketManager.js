@@ -74,26 +74,31 @@ async function doAction({action,callerId,value,socket}) {
         game.flipped = game.flipped || []
         game.flipped.push(value)
         
-
-        const match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
         if( game.flipped.length == 2 ) {
-          
             setTimeout( async function() { 
-                if(match) { 
-                     game.flipped.forEach( i => { game.board[i] = null  })    
-                }
-                if( game.cardsLeft() > 2 ) {
-                    let result = await doAction({action:'turn',callerId:callerId,socket:socket})
-                    roomEmit({  socket:socket, action:"turn", result:result})
-                }
-                else {
-                    let result = await doAction({action:'win',callerId:callerId,socket:socket})
-                    roomEmit({  socket:socket, action:"win", result:result})
-                }
+                let result = await doAction({action:'result',callerId:callerId,socket:socket})
+                roomEmit({  socket:socket, action:"result", result:result})
             }, 1000);
         }   
-        return { position:value, symbol:game.board[value],match:match}
+        return { position:value, symbol:game.board[value]}
        
+        case "result":
+        const match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
+        if(match) { 
+            game.flipped.forEach( i => { game.board[i] = null  })    
+        }
+        setTimeout( async function() { 
+            if( game.cardsLeft() > 2 ) {
+                let result = await doAction({action:'turn',callerId:callerId,socket:socket})
+                roomEmit({  socket:socket, action:"turn", result:result})
+            }
+            else {
+                let result = await doAction({action:'win',callerId:callerId,socket:socket})
+                roomEmit({  socket:socket, action:"win", result:result})
+            }
+        }, 2000);
+        return  {match:match, positions:game.flipped}
+
         case "win":
         var winnerId = game.players[0].score > game.players[1].score ? game.players[0].id : game.players[1].id
         game.players.forEach( player => { delete gamesByUserId[player.id] })
