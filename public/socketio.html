@@ -10,7 +10,8 @@
   var sendAction = (action,value,callback) => {
     console.log("sending action",action)
     socket.emit('action',action, value, result => { 
-        console.log("callback",result)
+      
+      console.log("callback",result)
       if(callback)
         callback(result)
     })

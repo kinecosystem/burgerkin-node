@@ -14,7 +14,9 @@ class Game {
         this.players = []
         this.flipped = []
         this.turn = null
+        this.boardSize = [config.board_width,config.board_height]
         this.board = this.shuffle(JSON.parse(JSON.stringify(symbols)))
+        console.log(this.board)
     }
     shuffle(array) {
         var currentIndex = array.length, temporaryValue, randomIndex;
@@ -29,8 +31,13 @@ class Game {
     }
     copyWithHiddenBoard() {
         let cpy = JSON.parse(JSON.stringify(this))
-        cpy.board = cpy.board.map( item => { return Math.min(item,0) } )
+        cpy.board = cpy.board.map( item => { return item == null ? null : Math.min(item,0) } )
+        this.flipped.forEach( index => {  cpy.board[index] = this.board[index] });
+        delete cpy.flipped
         return cpy
+    }
+    cardsLeft() {
+        return this.board.filter( item => { return item != null }).length
     }
 }
 module.exports = Game

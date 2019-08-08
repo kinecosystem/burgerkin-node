@@ -1,35 +1,36 @@
 let config = require('./config')
 let Game = require('./Game')
-const self = this
+let Player = require('./Player')
 var games = []
 var gamesByUserId = {}
 const allowedUserActions = ['flip','echo','join']
 
 process.stdout.write('\033c');
 process.stdout.write('\x1Bc'); 
-// setInterval(() => {
-//     process.stdout.write('\033c');
-// process.stdout.write('\x1Bc'); 
-//     console.log( "*",games,Object.keys(gamesByUserId))
-// }, 2000);
+setInterval(() => {
+    process.stdout.write('\033c');
+process.stdout.write('\x1Bc'); 
+    console.log( "*",games,Object.keys(gamesByUserId))
+}, 2000);
 
 async function doAction({action,callerId,value,socket}) {
     console.log(action,callerId,value)
     var game = gamesByUserId[callerId]
     switch (action) {
         case "join":
-           
+         if( !callerId ) throw new Error("Missing callerId")
+         
         if(!game) {
             const pendingGames = games.filter(game => game.state == 'pending')
             if(pendingGames.length) {
                 game = pendingGames[0]
-                game.players.push(callerId)
+                game.players.push(new Player({id:callerId,name:value}))
                 gamesByUserId[callerId] = game
             }
         }
         if(!game) {
             game = new Game()
-            game.players.push(callerId)
+            game.players.push(new Player( { id:callerId, name:value }))
             games.push(game)
             gamesByUserId[callerId] = game
         }
@@ -39,11 +40,8 @@ async function doAction({action,callerId,value,socket}) {
             game = game.copyWithHiddenBoard()
             if(game.state == 'pending' && game.players.length == 2) {
                 setTimeout( async function() {
-                    let game = await doAction({action:'turn',callerId:callerId,socket:socket})
-                    if(game){
-                        game = game.copyWithHiddenBoard()
-                    }
-                    roomEmit({socket:socket,action:"turn",result:game})
+                    let result = await doAction({action:'turn',callerId:callerId,socket:socket})
+                    roomEmit({socket:socket,action:"turn",result:result})
             }, 1000);
             }
             return game
@@ -53,14 +51,20 @@ async function doAction({action,callerId,value,socket}) {
         case "turn":
         if(!game) throw new Error("User not in game")
         if(game.state != 'pending' && game.state != 'turn' ) throw new Error("Turn not allowed")
-        game.turn = game.turn ? game.players[ (game.players.indexOf(game.turn) + 1) % game.players.length ] :  game.players[0]
+        if(game.turn) {
+            const i = game.players.map( player => { return player.id }).indexOf(game.turn) 
+            game.turn = game.players[ (i + 1) % game.players.length ].id
+        } else {
+            game.turn = game.players[0].id
+        }
         game.state = 'turn'
         game.flipped = []
-        return game
+        return game.turn
     
         case "flip":
         value = parseInt(value)
         if( !game ) throw new Error("User not in game")
+        if( game.state != 'turn') throw new Error("Turn not allowed in that state")
         if( game.turn != callerId) throw new Error("Not your turn")
         if( value === undefined || value !== parseInt(value)) throw new Error("Invalid value")
         if( game.flipped && game.flipped.indexOf(value) > -1 ) throw new Error("Card already flipeed")
@@ -70,28 +74,41 @@ async function doAction({action,callerId,value,socket}) {
         game.flipped = game.flipped || []
         game.flipped.push(value)
         
-        if( game.flipped.length == 2 ) {
-            setTimeout( async function() {
-                let game = await doAction({action:'turn',callerId:callerId,socket:socket})
-                if(game){
-                    game = game.copyWithHiddenBoard()
-                }
-                roomEmit({socket:socket,action:"turn",result:game})
-            }, 1000);
-        }
 
-        return { position:value, symbol:game.board[value],match:0 }
+        const match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
+        if( game.flipped.length == 2 ) {
+          
+            setTimeout( async function() { 
+                if(match) { 
+                     game.flipped.forEach( i => { game.board[i] = null  })    
+                }
+                if( game.cardsLeft() > 2 ) {
+                    let result = await doAction({action:'turn',callerId:callerId,socket:socket})
+                    roomEmit({  socket:socket, action:"turn", result:result})
+                }
+                else {
+                    let result = await doAction({action:'win',callerId:callerId,socket:socket})
+                    roomEmit({  socket:socket, action:"win", result:result})
+                }
+            }, 1000);
+        }   
+        return { position:value, symbol:game.board[value],match:match}
        
-        case "winner":
+        case "win":
+        var winnerId = game.players[0].score > game.players[1].score ? game.players[0].id : game.players[1].id
+        game.players.forEach( player => { delete gamesByUserId[player.id] })
+        games.splice(games.indexOf(game),1)
+        return winnerId
+
         break
         //Optional
         case "leave":
-        const aGame = gamesByUserId[callerId]
-        if( aGame && aGame.state == 'pending') {
-            aGame.players.splice(aGame.players.indexOf(callerId),1)
+        if( game && game.state == 'pending') {
+            const i = game.player.map( player => { return player.id; }).indexOf(callerId);
+            game.players.splice(i,1)
             delete gamesByUserId[callerId]
-            if(!aGame.players.length) 
-                games.splice(games.indexOf(aGame),1)
+            if(!game.players.length) 
+                games.splice(games.indexOf(game),1)
         }
         break
 
@@ -102,7 +119,7 @@ async function doAction({action,callerId,value,socket}) {
 
 function roomEmit({socket,action,result}) {
     if(socket.gameId) 
-        io.to(socket.gameId).emit("action",{action:action,callerId:socket.token,value:result}) 
+        io.to(socket.gameId).emit("action",{action:action,callerId:"server",value:result}) 
 }
 module.exports = function (server,options,cb) {
     io = require('socket.io')(server)
@@ -114,27 +131,26 @@ module.exports = function (server,options,cb) {
             socket.handshake.query.name &&
             socket.handshake.query.name != 'undefined') {
             try {
-                socket.token = socket.handshake.query.name + ":" + socket.handshake.query.token
-                let game = await doAction({ action:'join', callerId: socket.token,socket:socket })
+                //console.log(socket.handshake.query.token ,socket.handshake.query.name)
+                let game = await doAction({ action:'join', callerId: socket.handshake.query.token ,value:socket.handshake.query.name,socket:socket })
                 socket.gameId = game.id
-                socket.isAuthorized = true
+
                 socket.join(game.id)
+                socket.token = socket.handshake.query.token
                 io.to(game.id).emit("action",{action:'join', callerId:socket.token}) 
             }
             catch(error) {
-                console.log(error)
+               // console.log(error)
                 socket.disconnect()
             }
         } else {
             socket.disconnect()
         }
         socket.on('action',async function (action,value,cb) { 
-            console.log("socket recieved aciton",action,value, socket.isAuthorized)
-            if( socket.isAuthorized && allowedUserActions.indexOf(action) > -1 ) {
+           // console.log("socket recieved aciton",action,value, socket.isAuthorized)
+            if( socket.token && allowedUserActions.indexOf(action) > -1 ) {
                 try {
-                    
-                   let result = await doAction({action:action,callerId:socket['token'], value:value,socket:socket})
-                
+                   let result = await doAction({action:action,callerId:socket['token'], value:value,socket:socket})    
                     if(cb)
                        cb(result)
                      roomEmit({socket:socket,action:action,result:result})
