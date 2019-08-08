@@ -3,5 +3,5 @@ module.exports = { master_public_address: 'GCUOZGHMN7XEGIDDCKDXWP732E2GKCYTBPSLY
                    appId: 'bkin',
                    board_width: 4,
                    board_height: 5,
-                   monitor_tables:true
+                   monitor_tables:false
                 };

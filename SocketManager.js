@@ -6,8 +6,8 @@ var games = []
 var gamesByUserId = {}
 const allowedUserActions = ['flip','echo','join']
 
-process.stdout.write('\033c');
-process.stdout.write('\x1Bc'); 
+// process.stdout.write('\033c');
+// process.stdout.write('\x1Bc'); 
 if(config.monitor_tables) {
     setInterval(() => {
         process.stdout.write('\033c');
