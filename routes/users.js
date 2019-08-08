@@ -22,7 +22,6 @@ router.get('/login', async function(req, res, next) {
       res.setHeader('Content-Type', 'application/json');
       res.status(200).send(JSON.stringify({ wallet_address: config.master_public_address}))
 
-
     }
     catch (error) {
        res.render('error', { message:error.message, error: error });
