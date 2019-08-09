@@ -22,8 +22,8 @@ spinner.setSpinnerString(2)
 const actions = Object.freeze({ JOIN: 'join', RECOVER: 'recover', TURN: 'turn', FLIP: 'flip', RESULT: 'result', WIN: 'win', LEAVE: 'leave' }) 
 
 //Model
-const games = []
-const gamesByUserId = {}
+var games = []
+var gamesByUserId = {}
 
 //Utils
 function gameEmit( {gameId, action, sender = "server", callerId, value } ) {
@@ -34,6 +34,10 @@ function gameEmit( {gameId, action, sender = "server", callerId, value } ) {
 module.exports = {
     eventEmitter: new events.EventEmitter()
     ,actions: actions
+    ,reset: () => {
+        games = []
+        gamesByUserId = {}
+    }
     ,monitorTables: interval => {
         process.stdout.write('\033c');
         process.stdout.write('\x1Bc'); 
