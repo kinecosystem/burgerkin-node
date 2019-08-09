@@ -1,4 +1,14 @@
+/**
+ * 
+ * Summary. 
+ *
+ * Desc
+ *
+ * @author Alon Genosar.
+ */
+
 class Player {
+  
     constructor({id,name}) {
         this.id = id
         this.name = name

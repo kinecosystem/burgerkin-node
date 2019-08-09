@@ -1,3 +1,12 @@
+/**
+ * 
+ * Summary. 
+ *
+ * Desc
+ *
+ * @author Alon Genosar.
+ */
+
 let config = require('./config')
 var { newId } = require("uuid-pure")
 
@@ -6,8 +15,11 @@ for(var i = 0; i < config.board_width * config.board_height / 2.0; i++) {
     symbols.push(i + 1)
     symbols.push(i + 1)
 }
-
+const states = Object.freeze({ PENDING: 'pending', PLAYING: 'playing', COMPLETED: 'completed' }) 
 class Game {
+
+    static get states() { return states }
+    
     constructor() {
         this.id = newId(5)
         this.state = 'pending'
@@ -18,6 +30,7 @@ class Game {
         this.board = this.shuffle(JSON.parse(JSON.stringify(symbols)))
         console.log(this.board)
     }
+   
     shuffle(array) {
         var currentIndex = array.length, temporaryValue, randomIndex;
         while (0 !== currentIndex) {
@@ -29,6 +42,7 @@ class Game {
         }
         return array;
     }
+   
     copyWithHiddenBoard() {
         let cpy = JSON.parse(JSON.stringify(this))
         cpy.board = cpy.board.map( item => { return item == null ? null : Math.min(item,0) } )
@@ -36,8 +50,10 @@ class Game {
         delete cpy.flipped
         return cpy
     }
+   
     cardsLeft() {
         return this.board.filter( item => { return item != null }).length
     }
+    
 }
 module.exports = Game

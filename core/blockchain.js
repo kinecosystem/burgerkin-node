@@ -1,3 +1,12 @@
+/**
+ * 
+ * Summary. 
+ *
+ * Desc
+ *
+ * @author Oren Zakay.
+ */
+
 const KinClient = require('@kinecosystem/kin-sdk-node').KinClient;
 const Environment = require('@kinecosystem/kin-sdk-node').Environment;
 const config = require('../config')

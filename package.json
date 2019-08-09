@@ -7,16 +7,18 @@
   },
   "dependencies": {
     "@kinecosystem/kin-sdk-node": "^0.9.4",
+    "chalk": "^2.4.2",
+    "cli-box": "^6.0.9",
+    "cli-spinner": "^0.2.10",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "figlet": "^1.2.3",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "json-colorz": "^0.2.7",
     "morgan": "~1.9.1",
-    "redis": "^2.8.0",
     "socket.io": "^2.2.0",
-    "socket.io-redis": "^5.2.0",
     "uuid-pure": "^1.0.10"
   }
 }
