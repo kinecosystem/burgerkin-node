@@ -97,9 +97,10 @@ const figlet = require('figlet');
 process.stdout.write('\033c');
 process.stdout.write('\x1Bc'); 
 let result = figlet("Burger Kin",(error,result) => {
-  console.log(result)
-  console.log("\nwritten by Oren Zakay and Alon Genosar, Kin.org\n\n")
+  console.log('\n\n'+result)
+  console.log("written by Oren Zakay and Alon Genosar, Kin.org\n\nconfig:")
   jclrz(config)
+  console.log('\n')
   
 })
 
