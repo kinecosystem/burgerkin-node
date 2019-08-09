@@ -8,8 +8,8 @@
  */
 
 let config = require('./config')
-const { doAction, actions, eventEmitter,test } = require('./gameEngine')
-const gameEngine = require('./gameEngine')
+const { doAction, actions, eventEmitter,test } = require('./game/gameEngine')
+const gameEngine = require('./game/gameEngine')
 
 // Model
 const socketByUserId = []
@@ -17,14 +17,11 @@ const allowedUserActions = [ actions.FLIP, actions.JOIN, actions.RECOVER ]
 
 // Game engine event listener
 eventEmitter.on("action",( {gameId,action,callerId,value} ) => {
-    console.log("emmiting action",action,value,callerId,gameId)
     io.to(gameId).emit("action", { action:action, callerId:callerId, value:value }) 
 })
    
-//
-// API
-//
 
+// API
 module.exports = function (server,options,cb) {
     io = require('socket.io')(server)
     io.on('connection', async function (socket,next) {

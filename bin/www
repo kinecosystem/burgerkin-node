@@ -7,6 +7,7 @@ const config = require('../config')
 var app = require('../app');
 var debug = require('debug')('server:server');
 var http = require('http');
+const jclrz = require('json-colorz')
 
 /**
  * Get port from environment and store in Express.
@@ -98,5 +99,8 @@ process.stdout.write('\x1Bc');
 let result = figlet("Burger Kin",(error,result) => {
   console.log(result)
   console.log("\nwritten by Oren Zakay and Alon Genosar, Kin.org\n\n")
+  jclrz(config)
+  
 })
+
 require('../socketManager')(server)

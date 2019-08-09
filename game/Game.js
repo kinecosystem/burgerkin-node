@@ -7,7 +7,7 @@
  * @author Alon Genosar.
  */
 
-let config = require('./config')
+let config = require('../config')
 var { newId } = require("uuid-pure")
 
 let symbols = []
@@ -28,7 +28,6 @@ class Game {
         this.turn = null
         this.boardSize = [config.board_width,config.board_height]
         this.board = this.shuffle(JSON.parse(JSON.stringify(symbols)))
-        console.log(this.board)
     }
    
     shuffle(array) {

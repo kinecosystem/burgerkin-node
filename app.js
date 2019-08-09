@@ -6,7 +6,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const config = require('./config')
-const gameEngine = require('./gameEngine')
+const gameEngine = require('./game/gameEngine')
 var app = express();
 
 // view engine setup

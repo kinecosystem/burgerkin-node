@@ -8,10 +8,10 @@
  */
 
 const jclrz = require('json-colorz')
-const config = require('./config')
+const config = require('../config')
 const Game = require('./Game')
 const Player = require('./Player')
-const blockchain = require('./core/blockchain')
+const blockchain = require('../core/blockchain')
 const events = require('events')
 
 const Spinner = require('cli-spinner').Spinner;
@@ -41,14 +41,13 @@ module.exports = {
         setInterval(() => {
             process.stdout.write('\033c');
             process.stdout.write('\x1Bc'); 
-           
-    
             jclrz(games)
         }, interval);
     }
     ,doAction: async ({action,callerId,value,socket}) => { 
         if(!config.monitor_tables)
-            console.log("doAction",action,callerId,value)
+           
+            console.log("[gameEngine] doAction",{action:action,callerId:callerId,value:value})
 
         var game = gamesByUserId[callerId]
 
