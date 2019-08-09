@@ -7,9 +7,9 @@
  * @author Alon Genosar.
  */
 
-let config = require('./config')
-const { doAction, actions, eventEmitter,test } = require('./game/gameEngine')
-const gameEngine = require('./game/gameEngine')
+let config = require('../config')
+const { doAction, actions, eventEmitter,test } = require('./gameEngine')
+const gameEngine = require('./gameEngine')
 
 // Model
 const socketByUserId = []

@@ -104,4 +104,4 @@ let result = figlet("Burger Kin",(error,result) => {
   
 })
 
-require('../socketManager')(server)
+require('../game/socketManager')(server)

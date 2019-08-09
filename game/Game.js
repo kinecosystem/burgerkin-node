@@ -23,7 +23,7 @@ class Game {
     constructor() {
         this.id = newId(5)
         this.state = 'pending'
-        this.players = []
+        this.players = {}
         this.flipped = []
         this.turn = null
         this.boardSize = [config.board_width,config.board_height]
@@ -42,7 +42,7 @@ class Game {
         return array;
     }
    
-    copyWithHiddenBoard() {
+    userFriendly() {
         let cpy = JSON.parse(JSON.stringify(this))
         cpy.board = cpy.board.map( item => { return item == null ? null : Math.min(item,0) } )
         this.flipped.forEach( index => {  cpy.board[index] = this.board[index] });
