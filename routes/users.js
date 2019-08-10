@@ -14,20 +14,18 @@ const config = require('../config')
 
 router.get('/login', async function(req, res, next) {
     const public_key = req.query.public_key
-    if (!public_key) { return res.status(400).send('public_key could not be empty') }
-    
     try {
-      const isAccountExists = await blockchain.isAccountExisting(public_key)
-      console.log("isAccountExists -> " + isAccountExists)
-      if (!isAccountExists) {
+      if(!public_key) 
+        throw new Error("missing public_key")
+      
+      if(!await blockchain.isAccountExisting(public_key))
         await blockchain.createAccount(public_key)
-      }
-
-      res.setHeader('Content-Type', 'application/json');
-      res.status(200).send(JSON.stringify({ wallet_address: config.master_public_address}))
-    }
+      
+        res.json({ wallet_address: config.master_public_address})
+   }
     catch (error) {
-       res.render('error', { message:error.message, error: error });
+      next(error)
+      //res.status(400).json({error:{message:error.message}});
     }
 });
 module.exports = router;

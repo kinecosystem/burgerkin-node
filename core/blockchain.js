@@ -31,7 +31,7 @@ async function isAccountExisting(wallet_address) {
     return result
   }
   catch(error) {
-    return result
+    return false
   } 
 }
 
