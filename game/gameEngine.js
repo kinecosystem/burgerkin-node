@@ -52,14 +52,23 @@ module.exports = {
         if(!config.monitor_tables)
             console.log("[gameEngine] doAction",{action:action,callerId:callerId,value:value})
 
+        if( !callerId ) throw new Error("Missing callerId")
         var game = gamesByUserId[callerId]
+
         switch (action) {
-            
+
+            //
+            // Recover
+            //
+            case action.RECOVER:
+            if(!game)
+                throw new Error("No active game")
+            return game
+        
             //
             // Join
             //
             case actions.JOIN:
-            if( !callerId ) throw new Error("Missing callerId")
             const result = await blockchain.isAccountExisting(callerId)
             if(!result) throw new Error("Invalid public id")
          
@@ -67,6 +76,12 @@ module.exports = {
             if(games.indexOf(game) < 0 )
                 games.push(game)
             
+            // If new game created , check player's transaction
+            if( game.players.length == 0 ) {
+                if( !value ) throw new Error("Missing transaction id")
+                if( await !blockchain.validateTransaction(value))
+                    throw new Error("Invalid transaction Id")
+            }
             game.players[callerId] = new Player( { id:callerId, name:value } )
             gamesByUserId[callerId] = game
 
