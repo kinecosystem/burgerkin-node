@@ -29,10 +29,6 @@ var gamesByUserId = {}
 function gameEmit( {gameId, action, sender = "server", callerId, value } ) {
     module.exports.eventEmitter.emit('action', { action:action, gameId:gameId, callerId:callerId, value:value })
 }
-a()
-async function a() {
-console.log(await blockchain.validateTransaction('b491d0558a9b20ae864300b5ff99f046459b868d34c6f33c745c72c6ae71548a'))
-}
 
 //API
 module.exports = {
