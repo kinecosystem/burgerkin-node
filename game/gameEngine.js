@@ -34,7 +34,7 @@ function gameEmit( {gameId, action, sender = "server", callerId, value } ) {
 module.exports = {
     eventEmitter: new events.EventEmitter()
     ,actions: actions
-    ,isInGame(callerId) {
+    ,isPlayerInGame(callerId) {
         return (gamesByUserId[callerId])
     }
     ,reset: () => {
