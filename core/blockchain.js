@@ -35,6 +35,10 @@ async function isAccountExisting(wallet_address) {
   } 
 }
 
+async function validateTransaction(transactionId) {
+  const data = await client.getTransactionData(transactionId)
+  return data && data.hasOwnProperty('amount') && data.amount == config.game_fee
+}
 async function createAccount(wallet_address) {
   console.log("buildCreateAccount -> " + wallet_address)
   // Sign the account creation transaction
@@ -77,6 +81,7 @@ function createID(length) {
 }
 
 module.exports = {
+  validateTransaction,
   isAccountExisting,
   createAccount,
   payToUser

@@ -8,6 +8,7 @@
   "dependencies": {
     "@kinecosystem/kin-sdk-node": "^0.9.4",
     "chalk": "^2.4.2",
+    "chalk-animation": "^1.6.0",
     "cli-box": "^6.0.9",
     "cli-spinner": "^0.2.10",
     "cookie-parser": "~1.4.4",
