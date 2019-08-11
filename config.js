@@ -16,6 +16,6 @@ module.exports = { master_public_address: process.env.hasOwnProperty('master_pub
                    monitor_tables_interval: process.env.hasOwnProperty('monitor_tables_interval') ? parseInt(process.env.monitor_tables_interval) : 2000,
                    game_fee: process.env.hasOwnProperty('game_fee') ? parseFloat(process.env.game_fee) : 10,
                    bad_card_symbol_index: 1,
-                   flipped_card_symbol_index: 0,
-                   total_bad_card_pairs: 1
+                   total_bad_card_pairs: 1,
+                   flipped_card_symbol_index: 0
                 };
