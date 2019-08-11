@@ -37,7 +37,14 @@ async function isAccountExisting(wallet_address) {
 
 async function validateTransaction(transactionId) {
   const data = await client.getTransactionData(transactionId)
-  return data && data.hasOwnProperty('amount') && data.amount == config.game_fee
+
+  return  data 
+          //check for correct amount
+          && data.hasOwnProperty('amount') 
+          && data.amount === config.game_fee 
+          //check for transaction date
+          && data.hasOwnProperty('timeStamp')
+          &&  new Date() - Date(data.timestamp) < 10
 }
 async function createAccount(wallet_address) {
   console.log("buildCreateAccount -> " + wallet_address)
