@@ -36,13 +36,11 @@ router.get('/is-player-in-game', async function (req, res, next) {
     if (!public_key)
       throw new Error("missing public_key")
 
-    const is_player_in_game = gameEngine.isPlayerInGame(public_key)
-
-    res.json({
-      is_player_in_game: is_player_in_game
-    })
+    const result = gameEngine.isPlayerInGame(public_key)
+    console.log(result)
+    res.json({ result: result })
   } catch (error) {
-    next(error)
+      next(error)
   }
 });
 

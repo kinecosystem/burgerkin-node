@@ -35,7 +35,7 @@ module.exports = {
     eventEmitter: new events.EventEmitter()
     ,actions: actions
     ,isPlayerInGame(callerId) {
-        return (gamesByUserId[callerId])
+        return gamesByUserId[callerId] !== undefined
     }
     ,reset: () => {
         games = []
