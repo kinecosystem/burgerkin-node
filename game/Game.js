@@ -15,14 +15,14 @@ for(var i = 0; i < config.board_width * config.board_height / 2.0; i++) {
     symbols.push(i + 1)
     symbols.push(i + 1)
 }
-const states = Object.freeze({ PENDING: 'pending', PLAYING: 'playing', COMPLETED: 'completed' }) 
+const states = Object.freeze({ PENDING: 'pending', STARTING:'starting', PLAYING: 'playing', COMPLETED: 'completed' }) 
 class Game {
 
     static get states() { return states }
     
     constructor() {
         this.id = newId(5)
-        this.state = 'pending'
+        this.state = states.PENDING
         this.players = {}
         this.flipped = []
         this.turn = null

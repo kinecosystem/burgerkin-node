@@ -24,7 +24,7 @@ eventEmitter.on("action",( {gameId,action,callerId,value} ) => {
 // API
 module.exports = function (server,options,cb) {
     io = require('socket.io')(server)
-    io.on('connection', async function (socket,next) {
+    io.on('connection', async function (socket,next,a) {
         //console.log("Connecting",socket.handshake.query.token, socket.handshake.query.name)
         if (socket.handshake.query && 
             socket.handshake.query.token &&
@@ -32,15 +32,19 @@ module.exports = function (server,options,cb) {
             socket.handshake.query.name &&
             socket.handshake.query.name != 'undefined') {
             try {
-                //console.log(socket.handshake.query.token ,socket.handshake.query.name)
-                let game = await doAction({ action:actions.JOIN, callerId: socket.handshake.query.token ,value:socket.handshake.query.name,socket:socket })
+                let value = {
+                    name: socket.handshake.query.name,
+                    transactionId: socket.handshake.query.transactionId
+                }
+               
+                let game = await doAction({ action:actions.JOIN, callerId:socket.handshake.query.token, value:value, socket:socket })
                 socket.gameId = game.id
                 socket.join(game.id)
                 socket.token = socket.handshake.query.token
                 io.to(game.id).emit("action",{action:actions.JOIN, callerId:socket.token,value:game}) 
             }
             catch(error) {
-                console.log("error",error)
+                console.log("*** error",error)
                 socket.disconnect()
             }
         } else {
@@ -50,7 +54,8 @@ module.exports = function (server,options,cb) {
            // console.log("socket recieved aciton",action,value, socket.isAuthorized)
             if( socket.token && allowedUserActions.indexOf(action) > -1 ) {
                 try {
-                   let result = await doAction({action:action,callerId:socket['token'], value:value,socket:socket})    
+                   let result = await doAction({action:action,callerId:socket['token'], value:value,socket:socket}) 
+                      
                     if(cb)
                        cb(result)
                        if(socket.gameId) 

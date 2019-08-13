@@ -71,38 +71,60 @@ module.exports = {
             //
             // Join
             //
-            case actions.JOIN:
-            
+            case actions.JOIN: 
             if(game)
-                return game
+                return game//.userFriendly()
             
+            //Validate
+            if( !value ) throw new Error("Missing transaction id" )
+            if( !value.name ) throw new Error("Missing name" ) 
+            //if( !value.transactionId ) throw new Error("Missing transaction id" ) 
             if(!await blockchain.isAccountExisting(callerId) ) throw new Error("Invalid public id")
-            //if( !value ) throw new Error("Missing transaction id" ) 
-            //if( await !blockchain.validateTransaction(value) ) throw new Error("Invalid transaction Id")
             
+            //Validate transaction
+            try {
+                console.log(value)
+              //  let result =   await !blockchain.validateTransaction(value.transactionId)
+            } catch ( error ) {
+               // console.log(error)
+            }
+            
+            //Check for pending games
             game = games.filter( game => game.state == Game.states.PENDING && Object.keys(game.players).length < 2 )[0] || new Game()
            
+            //Push game to games list if not already there
             if(games.indexOf(game) < 0 )
                 games.push(game)
-        
-            game.players[callerId] = new Player( { id:callerId, name:value } )
+            
+            //Add player to game object
+            game.players[callerId] = new Player( { id:callerId, name:value.name } )
+            
+            //Index games by player
             gamesByUserId[callerId] = game
+           
+            //Change state to starting if two player's has joind
+            console.log(Object.keys(game.players).length)
+             if( Object.keys(game.players).length == 2 )
+                game.state = Game.states.STARTING
+            
+           
+           
 
-            game = game.userFriendly()
-            if( game.state == Game.states.PENDING && Object.keys(game.players).length == 2 ) {
+            //Start game
+            if( game.state == Game.states.STARTING ) {
                 setTimeout( async function() {
                     let result = await module.exports.doAction({ action:actions.TURN, callerId:callerId } )
                     gameEmit( { gameId:game.id, action:actions.TURN, value:result, callerId:callerId } )
                 }, 1000);
             }
-            return game
+            return game.userFriendly()
         
             //
             // Turn
             //
             case actions.TURN:
             if(!game) throw new Error("User not in game")
-            if(game.state != Game.states.PENDING && game.state != Game.states.PLAYING ) throw new Error("Turn not allowed")
+            if(game.state != Game.states.STARTING && game.state != Game.states.PLAYING ) throw new Error("Turn not allowed")
         
             const playersId = Object.keys(game.players)
             const i = playersId.indexOf(game.turn)
