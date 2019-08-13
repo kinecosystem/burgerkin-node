@@ -44,7 +44,7 @@ async function validateTransaction(transactionId) {
           && data.amount === config.game_fee 
           //check for transaction date
           && data.hasOwnProperty('timeStamp')
-          &&  new Date() - Date(data.timestamp) < 10 // 10 sec
+          &&  new Date() - Date(data.timestamp) < config.transaction_experation_in_sec // 10 sec
 }
 
 async function createAccount(wallet_address) {

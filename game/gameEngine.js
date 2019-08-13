@@ -72,19 +72,19 @@ module.exports = {
             // Join
             //
             case actions.JOIN:
-            const result = await blockchain.isAccountExisting(callerId)
-            if(!result) throw new Error("Invalid public id")
-         
-            game = game || games.filter( game => game.state == Game.states.PENDING )[0] || new Game()
+            
+            if(game)
+                return game
+            
+            if(!await blockchain.isAccountExisting(callerId) ) throw new Error("Invalid public id")
+            //if( !value ) throw new Error("Missing transaction id" ) 
+            //if( await !blockchain.validateTransaction(value) ) throw new Error("Invalid transaction Id")
+            
+            game = games.filter( game => game.state == Game.states.PENDING && Object.keys(game.players).length < 2 )[0] || new Game()
+           
             if(games.indexOf(game) < 0 )
                 games.push(game)
-            
-            // If new game created , check player's transaction
-            if( game.players.length == 0 ) {
-                if( !value ) throw new Error("Missing transaction id")
-                if( await !blockchain.validateTransaction(value))
-                    throw new Error("Invalid transaction Id")
-            }
+        
             game.players[callerId] = new Player( { id:callerId, name:value } )
             gamesByUserId[callerId] = game
 
@@ -170,8 +170,7 @@ module.exports = {
             games.splice(games.indexOf(game),1)
             blockchain.payToUser(winnerId,config.game_fee)
             return winnerId
-            break
-    
+
             //
             // Leave
             //
@@ -185,7 +184,7 @@ module.exports = {
             break
 
             default:
-            throw new Error("Action",action," not supported")
+            throw new Error("Action",action,"not supported")
         }
     } 
 }
