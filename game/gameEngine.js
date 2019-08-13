@@ -73,7 +73,7 @@ module.exports = {
             //
             case actions.JOIN: 
             if(game)
-                return game//.userFriendly()
+                return game.userFriendly()
             
             //Validate
             if( !value ) throw new Error("Missing transaction id" )
