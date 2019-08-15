@@ -150,7 +150,7 @@ module.exports = {
                 setTimeout( async function() { 
                     let result = await module.exports.doAction({action:actions.RESULT,callerId:callerId})
                     gameEmit( { gameId:game.id,action:actions.RESULT, value:result,callerId:callerId } )
-                }, 500);
+                }, 100);
             }   
             return { position:value, symbol:game.board[value]}
            
@@ -176,7 +176,7 @@ module.exports = {
                     let result = await module.exports.doAction({action:actions.WIN,callerId:callerId})
                     gameEmit( { gameId:game.id,action:actions.WIN, value:result } )
                 }
-            }, 500);
+            }, 2000);
             return  { match:match, callerId:callerId, positions:game.flipped,player:p}
     
             //

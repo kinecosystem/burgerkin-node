@@ -18,5 +18,6 @@ module.exports = { master_public_address: process.env.hasOwnProperty('master_pub
                    bad_card_symbol_index: 1,
                    total_bad_card_pairs: 1,
                    flipped_card_symbol_index: 0,
-                   transaction_experation_in_sec: 10
+                   transaction_experation_in_sec: 10,
+                   
                 };
