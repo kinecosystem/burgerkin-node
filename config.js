@@ -19,5 +19,6 @@ module.exports = { master_public_address: process.env.hasOwnProperty('master_pub
                    total_bad_card_pairs: 1,
                    flipped_card_symbol_index: 0,
                    transaction_experation_in_sec: 10,
-                   
-                };
+                   pre_result_timeout:200,
+                   result_timout:2000
+                }
