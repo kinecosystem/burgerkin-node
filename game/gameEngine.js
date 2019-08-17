@@ -26,8 +26,8 @@ var games = []
 var gamesByUserId = {}
 
 //Utils
-function gameEmit( {gameId, action, sender = "server", callerId, value } ) {
-    module.exports.eventEmitter.emit('action', { action:action, gameId:gameId, callerId:callerId, value:value })
+function gameEmit( {gameId, action, sender = "server", callerId, value, result } ) {
+    module.exports.eventEmitter.emit('action', { action:action, gameId:gameId, callerId:callerId, value:value, result:result })
 }
 
 //API
@@ -59,7 +59,6 @@ module.exports = {
         var game = gamesByUserId[callerId]
 
         switch (action) {
-
             //
             // Recover
             //
@@ -103,7 +102,6 @@ module.exports = {
             gamesByUserId[callerId] = game
            
             //Change state to starting if two player's has joind
-            console.log(Object.keys(game.players).length)
              if( Object.keys(game.players).length == 2 )
                 game.state = Game.states.STARTING
 
@@ -111,7 +109,7 @@ module.exports = {
             if( game.state == Game.states.STARTING ) {
                 setTimeout( async function() {
                     let result = await module.exports.doAction({ action:actions.TURN, callerId:callerId } )
-                    gameEmit( { gameId:game.id, action:actions.TURN, value:result, callerId:callerId } )
+                    gameEmit( { gameId:game.id, action:actions.TURN, value:callerId, callerId:"server",result:result } )
                 }, 1000);
             }
             return game.userFriendly()
@@ -128,7 +126,7 @@ module.exports = {
             game.turn = playersId[ (i + 1) % playersId.length]
             game.state = Game.states.PLAYING
             game.flipped = []
-            return game.turn
+            return game.userFriendly()
         
             //
             // Flip
@@ -148,11 +146,13 @@ module.exports = {
             
             if( game.flipped.length == 2 ) {
                 setTimeout( async function() { 
-                    let result = await module.exports.doAction({action:actions.RESULT,callerId:callerId})
-                    gameEmit( { gameId:game.id,action:actions.RESULT, value:result,callerId:callerId } )
-                }, 100 );
-            }   
-            return { position:value, symbol:game.board[value]}
+                    let result = await module.exports.doAction({action:actions.RESULT,callerId:callerId })
+                    game.flipped = []
+                    gameEmit( { gameId:game.id,action:actions.RESULT, value: result, callerId: "server",result: game.userFriendly()} )
+                }, 1500 );
+            }  
+           
+            return game.userFriendly()
            
             //
             // Result
@@ -170,25 +170,20 @@ module.exports = {
             setTimeout( async function() { 
                 if( game.cardsLeft() > 1 && game.players[callerId].score > -1 ) {
                     let result = await module.exports.doAction({action:actions.TURN,callerId:callerId})
-                    gameEmit( { gameId:game.id,action:actions.TURN, value:result } )
+                    gameEmit( { gameId:game.id,action:actions.TURN, value:value,result:result } )
                 }
                 else {
-                    let result = await module.exports.doAction({action:actions.WIN,callerId:callerId})
-                    gameEmit( { gameId:game.id,action:actions.WIN, value:result } )
+                    let players = Object.values(game.players)
+                    var winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
+                    players.forEach( player => { delete gamesByUserId[player.id] })
+                    games.splice(games.indexOf(game),1)
+                    blockchain.payToUser(winnerId, config.game_fee * 2)
+                    game.state = Game.states.COMPLETED
+                    gameEmit( { gameId:game.id,action:actions.WIN, value:winner, result: game } )
                 }
             }, config.result_timout);
-            return { match:match, callerId:callerId, positions:game.flipped,player:p}
+            return match
     
-            //
-            // Win
-            //
-            case actions.WIN:
-            let players = Object.values(game.players)
-            var winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
-            players.forEach( player => { delete gamesByUserId[player.id] })
-            games.splice(games.indexOf(game),1)
-            blockchain.payToUser(winnerId,config.game_fee)
-            return winnerId
 
             //
             // Leave
