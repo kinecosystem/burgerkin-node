@@ -81,12 +81,7 @@ module.exports = {
             if(!await blockchain.isAccountExisting(callerId) ) throw new Error("Invalid public id")
             
             //Validate transaction
-            try {
-                console.log(value)
-              //  let result =   await !blockchain.validateTransaction(value.transactionId)
-            } catch ( error ) {
-               // console.log(error)
-            }
+            await !blockchain.validateTransaction(value.transactionId)
             
             //Check for pending games
             game = games.filter( game => game.state == Game.states.PENDING && Object.keys(game.players).length < 2 )[0] || new Game()
@@ -96,7 +91,7 @@ module.exports = {
                 games.push(game)
             
             //Add player to game object
-            game.players[callerId] = new Player( { id:callerId, name:value.name } )
+            game.players[callerId] = new Player( { id:callerId, name:value.name,facebookId: value.facebookId } )
             
             //Index games by player
             gamesByUserId[callerId] = game
@@ -123,7 +118,8 @@ module.exports = {
         
             const playersId = Object.keys(game.players)
             const i = playersId.indexOf(game.turn)
-            game.turn = playersId[ (i + 1) % playersId.length]
+            console.log("turn value",value)
+            game.turn = value || playersId[ (i + 1) % playersId.length]
             game.state = Game.states.TURN
             game.flipped = []
             return game.userFriendly()
@@ -146,7 +142,7 @@ module.exports = {
             
             if( game.flipped.length == 2 ) {
                 setTimeout( async function() { 
-                    let result = await module.exports.doAction({action:actions.RESULT,callerId:callerId })
+                    let result = await module.exports.doAction({ action: actions.RESULT, callerId })
                     game.flipped = []
                     game.state = Game.states.RESULT
                     gameEmit( { gameId:game.id,action:actions.RESULT, value: result, callerId: "server",result: game.userFriendly()} )
@@ -165,12 +161,12 @@ module.exports = {
                 const cardValue = game.board[game.flipped[0]]
                 game.flipped.forEach( i => { game.board[i] = null  })  
                 p = game.players[callerId]
-                p.score = cardValue != config.bad_card_symbol_index ? p.score + 1 : -1
+                p.score += cardValue != config.bad_card_symbol_index ? 1 : -1
             }
             
             setTimeout( async function() { 
-                if( game.cardsLeft() > 1 && game.players[callerId].score > -1 ) {
-                    let result = await module.exports.doAction({action:actions.TURN,callerId:callerId})
+                if( game.cardsLeft() ) {
+                    let result = await module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
                     gameEmit( { gameId:game.id,action:actions.TURN, value:value,result:result } )
                 }
                 else {
@@ -185,13 +181,12 @@ module.exports = {
             }, 100);
             return match
     
-
             //
             // Leave
             //
             case actions.LEAVE:
             if( game && game.state == Game.states.PENDING ) {
-        
+
                 delete game.players[callerId]
                 delete gamesByUserId[callerId]
                 if(!Object.keys(game.players).length) 

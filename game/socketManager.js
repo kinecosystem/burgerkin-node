@@ -34,15 +34,16 @@ module.exports = function (server,options,cb) {
             try {
                 let value = {
                     name: socket.handshake.query.name,
-                    transactionId: socket.handshake.query.transactionId
+                    transactionId: socket.handshake.query.transactionId,
+                    facebookId: socket.handshake.query.facebookId
                 }
                
-                let game = await doAction({ action:actions.JOIN, callerId:socket.handshake.query.token, value:value, socket:socket })
+                let game = await doAction({ action:actions.JOIN, callerId:socket.handshake.query.token, value, socket })
                 socket.gameId = game.id
                 socket.join(game.id)
                 console.log("joining to",game.id)
                 socket.token = socket.handshake.query.token
-                io.to(game.id).emit("action",{action:actions.JOIN, callerId:socket.token,value:value,result:game}) 
+                io.to(game.id).emit("action",{action:actions.JOIN, callerId:socket.token,value,result:game}) 
             }
             catch(error) {
                 console.log("*** error",error)
@@ -54,7 +55,7 @@ module.exports = function (server,options,cb) {
         socket.on('action',async function (action,value,cb) { 
             if( socket.token && allowedUserActions.indexOf(action) > -1 ) {
                 try {
-                   let result = await doAction({action:action, callerId:socket['token'], value:value, socket:socket }) 
+                   let result = await doAction({action, callerId:socket['token'], value, socket}) 
                       
                     if(cb)
                        cb(result)

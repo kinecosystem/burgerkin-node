@@ -9,10 +9,11 @@
 
 class Player {
   
-    constructor({id,name}) {
+    constructor({id,name,facebookId}) {
         this.id = id
         this.name = name
         this.score = 0
+        this.facebookId = facebookId
     }
 }
 module.exports = Player
