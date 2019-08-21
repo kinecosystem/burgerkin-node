@@ -13,9 +13,9 @@ const Game = require('./Game')
 const Player = require('./Player')
 const blockchain = require('../core/blockchain')
 const events = require('events')
-
 const Spinner = require('cli-spinner').Spinner;
 const spinner = new Spinner("Monitoring Games")
+
 spinner.setSpinnerString(2)
 
 //ENUMS
@@ -119,12 +119,12 @@ module.exports = {
             //
             case actions.TURN:
             if(!game) throw new Error("User not in game")
-            if(game.state != Game.states.STARTING && game.state != Game.states.PLAYING ) throw new Error("Turn not allowed")
+            if(game.state != Game.states.STARTING && game.state != Game.states.TURN  && game.state != Game.states.RESULT ) throw new Error("Turn not allowed")
         
             const playersId = Object.keys(game.players)
             const i = playersId.indexOf(game.turn)
             game.turn = playersId[ (i + 1) % playersId.length]
-            game.state = Game.states.PLAYING
+            game.state = Game.states.TURN
             game.flipped = []
             return game.userFriendly()
         
@@ -134,7 +134,7 @@ module.exports = {
             case actions.FLIP:
             value = parseInt(value)
             if( !game ) throw new Error("User not in game")
-            if( game.state != Game.states.PLAYING ) throw new Error("Turn not allowed in that state")
+            if( game.state != Game.states.TURN ) throw new Error("Turn not allowed in that state")
             if( game.turn != callerId) throw new Error("Not your turn")
             if( value === undefined || value !== parseInt(value)) throw new Error("Invalid value")
             if( game.flipped && game.flipped.indexOf(value) > -1 ) throw new Error("Card already flipeed")
@@ -148,6 +148,7 @@ module.exports = {
                 setTimeout( async function() { 
                     let result = await module.exports.doAction({action:actions.RESULT,callerId:callerId })
                     game.flipped = []
+                    game.state = Game.states.RESULT
                     gameEmit( { gameId:game.id,action:actions.RESULT, value: result, callerId: "server",result: game.userFriendly()} )
                 }, 1500 );
             }  
@@ -181,7 +182,7 @@ module.exports = {
                     game.state = Game.states.COMPLETED
                     gameEmit( { gameId:game.id,action:actions.WIN, value:winner, result: game } )
                 }
-            }, config.result_timout);
+            }, 100);
             return match
     
 
@@ -190,10 +191,13 @@ module.exports = {
             //
             case actions.LEAVE:
             if( game && game.state == Game.states.PENDING ) {
+        
                 delete game.players[callerId]
                 delete gamesByUserId[callerId]
                 if(!Object.keys(game.players).length) 
                     games.splice(games.indexOf(game),1)
+            
+                blockchain.payToUser(callerId, config.game_fee )
             }
             break
 

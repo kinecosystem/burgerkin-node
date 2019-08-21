@@ -15,7 +15,7 @@ for(var i = 0; i < config.board_width * config.board_height / 2.0; i++) {
     symbols.push(i + 1)
     symbols.push(i + 1)
 }
-const states = Object.freeze({ PENDING: 'pending', STARTING:'starting', PLAYING: 'playing', TURN: 'turn', RESULT: 'result', COMPLETED: 'completed' }) 
+const states = Object.freeze({ PENDING: 'pending', STARTING:'starting', TURN: 'turn', RESULT: 'result', COMPLETED: 'completed' }) 
 class Game {
 
     static get states() { return states }
