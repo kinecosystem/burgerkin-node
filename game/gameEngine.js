@@ -163,24 +163,33 @@ module.exports = {
                 p = game.players[callerId]
                 p.score += cardValue != config.bad_card_symbol_index ? 1 : -1
             }
-            
+          
             setTimeout( async function() { 
                 if( game.cardsLeft() ) {
                     let result = await module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
                     gameEmit( { gameId:game.id,action:actions.TURN, value:value,result:result } )
                 }
                 else {
+                    var winnerId = "tie"
                     let players = Object.values(game.players)
-                    var winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
+                    if( players[0].score !== players[1].score )
+                        winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
                     players.forEach( player => { delete gamesByUserId[player.id] })
                     games.splice(games.indexOf(game),1)
-                    blockchain.payToUser(winnerId, config.game_fee * 2)
+                    if(winnerId == 'tie') {
+                        blockchain.payToUser( players[0].id, config.game_fee)
+                        blockchain.payToUser( players[1].id, config.game_fee)
+                    }
+                    else {
+                        blockchain.payToUser(winnerId, config.game_fee * 2)
+                    }
                     game.state = Game.states.COMPLETED
-                    gameEmit( { gameId:game.id,action:actions.WIN, value:winner, result: game } )
+                    gameEmit( { gameId:game.id,action:actions.WIN, value:winnerId, result: game } )
                 }
             }, 100);
             return match
     
+            
             //
             // Leave
             //

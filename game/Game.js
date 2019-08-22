@@ -26,6 +26,7 @@ class Game {
         this.players = {}
         this.flipped = []
         this.turn = null
+        this.stateValue = null
         this.boardSize = [config.board_width,config.board_height]
         this.board = this.shuffle(JSON.parse(JSON.stringify(symbols)))
     }
