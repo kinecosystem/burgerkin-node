@@ -143,7 +143,7 @@ module.exports = {
             if( game.flipped.length == 2 ) {
                 setTimeout( async function() { 
                     let result = await module.exports.doAction({ action: actions.RESULT, callerId })
-                    game.flipped = []
+                    //game.flipped = []
                     game.state = Game.states.RESULT
                     gameEmit( { gameId:game.id,action:actions.RESULT, value: result, callerId: "server",result: game.userFriendly()} )
                 }, 1500 );
