@@ -47,7 +47,6 @@ class Game {
         let cpy = JSON.parse(JSON.stringify(this))
         cpy.board = cpy.board.map( item => { return item == null ? null : Math.min(item,0) } )
         this.flipped.forEach( index => {  cpy.board[index] = this.board[index] });
-        //delete cpy.flipped
         return cpy
     }
    

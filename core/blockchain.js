@@ -36,15 +36,19 @@ async function isAccountExisting(wallet_address) {
 }
 
 async function validateTransaction(transactionId) {
-  const data = await client.getTransactionData(transactionId)
-
-  return  data 
-          //check for correct amount
-          && data.hasOwnProperty('amount') 
-          && data.amount === config.game_fee 
-          //check for transaction date
-          && data.hasOwnProperty('timeStamp')
-          &&  new Date() - Date(data.timestamp) < config.transaction_experation_in_sec // 10 sec
+  try {
+    const data = await client.getTransactionData(transactionId)
+    return  data 
+            //check for correct amount
+            && data.hasOwnProperty('amount') 
+            && data.amount === config.game_fee 
+            //check for transaction date
+            && data.hasOwnProperty('timeStamp')
+            &&  new Date() - Date(data.timestamp) < config.transaction_experation_in_sec // 10 sec
+    }
+    catch {
+      return false
+    }
 }
 
 async function createAccount(wallet_address) {

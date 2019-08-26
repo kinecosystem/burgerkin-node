@@ -163,7 +163,7 @@ module.exports = {
                 p = game.players[callerId]
                 p.score += cardValue != config.bad_card_symbol_index ? 1 : -1
             }
-          
+            console.log("1",game.flipped)
             setTimeout( async function() { 
                 if( game.cardsLeft() ) {
                     let result = await module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
@@ -187,6 +187,7 @@ module.exports = {
                     gameEmit( { gameId:game.id,action:actions.WIN, value:winnerId, result: game } )
                 }
             }, 100);
+            console.log("1",game.flipped)
             return match
     
             
