@@ -20,5 +20,7 @@ module.exports = { master_public_address: process.env.hasOwnProperty('master_pub
                    flipped_card_symbol_index: 0,
                    transaction_experation_in_sec: 10,
                    pre_result_timeout:200,
-                   result_timout:2000
+                   result_timout:2000,
+                   server_version:0.1
+
                 }
