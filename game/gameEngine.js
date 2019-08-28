@@ -15,7 +15,7 @@ const blockchain = require('../core/blockchain')
 const events = require('events')
 const Spinner = require('cli-spinner').Spinner;
 const spinner = new Spinner("Monitoring Games")
-
+const timerByGameId = {}
 spinner.setSpinnerString(2)
 
 //ENUMS
@@ -103,8 +103,7 @@ module.exports = {
             //Start game
             if( game.state == Game.states.STARTING ) {
                 setTimeout( async function() {
-                    let result = await module.exports.doAction({ action:actions.TURN, callerId:callerId } )
-                    gameEmit( { gameId:game.id, action:actions.TURN, value:callerId, callerId:"server",result:result } )
+                    module.exports.doAction({ action:actions.TURN, callerId:callerId } )
                 }, 1000);
             }
             return game.userFriendly()
@@ -115,13 +114,24 @@ module.exports = {
             case actions.TURN:
             if(!game) throw new Error("User not in game")
             if(game.state != Game.states.STARTING && game.state != Game.states.TURN  && game.state != Game.states.RESULT ) throw new Error("Turn not allowed")
-        
+           
+            //Clear turn timeout
+            clearTimeout( timerByGameId[game.id])
+            delete game.stateTimeout
+           
             const playersId = Object.keys(game.players)
             const i = playersId.indexOf(game.turn)
-            console.log("turn value",value)
             game.turn = value || playersId[ (i + 1) % playersId.length]
             game.state = Game.states.TURN
             game.flipped = []
+            
+            //Set turn timout 
+            game.stateTimeout = new Date().getTime() + config.turn_timeout
+            timerByGameId[game.id] = setTimeout( async () => {
+                delete timerByGameId[game.id]
+                module.exports.doAction({ action:actions.RESULT, callerId:callerId } )
+            },config.turn_timeout )
+            gameEmit({ gameId:game.id,action:actions.TURN, value:value,result: game.userFriendly() } )
             return game.userFriendly()
         
             //
@@ -137,18 +147,17 @@ module.exports = {
             if( game.flipped && game.flipped.length == 2 ) throw new Error("Cards already flipped")
             if( game.board[value] === null ) throw new Error("Card alread removed")
            
+          
+
+
             game.flipped = game.flipped || []
             game.flipped.push(value)
             
             if( game.flipped.length == 2 ) {
                 setTimeout( async function() { 
-                    let result = await module.exports.doAction({ action: actions.RESULT, callerId })
-                    //game.flipped = []
-                    game.state = Game.states.RESULT
-                    gameEmit( { gameId:game.id,action:actions.RESULT, value: result, callerId: "server",result: game.userFriendly()} )
+                    module.exports.doAction({ action: actions.RESULT, callerId })
                 }, 1500 );
             }  
-           
             return game.userFriendly()
            
             //
@@ -163,11 +172,10 @@ module.exports = {
                 p = game.players[callerId]
                 p.score += cardValue != config.bad_card_symbol_index ? 1 : -1
             }
-            console.log("1",game.flipped)
+     
             setTimeout( async function() { 
                 if( game.cardsLeft() ) {
-                    let result = await module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
-                    gameEmit( { gameId:game.id,action:actions.TURN, value:value,result:result } )
+                      module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
                 }
                 else {
                     var winnerId = "tie"
@@ -187,7 +195,8 @@ module.exports = {
                     gameEmit( { gameId:game.id,action:actions.WIN, value:winnerId, result: game } )
                 }
             }, 100);
-            console.log("1",game.flipped)
+            game.state = Game.states.RESULT
+            gameEmit( { gameId:game.id,action:actions.RESULT, value: match, callerId: "server",result: game.userFriendly()} )
             return match
     
             
