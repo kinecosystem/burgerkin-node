@@ -51,7 +51,7 @@ class Game {
     }
    
     cardsLeft() {
-        return this.board.filter( item => { return item != null }).length
+        return this.board.filter( item => { return item != null })
     }
     
 }

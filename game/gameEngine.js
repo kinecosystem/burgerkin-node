@@ -91,7 +91,7 @@ module.exports = {
                 games.push(game)
             
             //Add player to game object
-            game.players[callerId] = new Player( { id:callerId, name:value.name,facebookId: value.facebookId } )
+            game.players[callerId] = new Player( { id:callerId, name:value.name,facebookId: value.facebookId,avatar: value.avatar } )
             
             //Index games by player
             gamesByUserId[callerId] = game
@@ -142,14 +142,11 @@ module.exports = {
             if( !game ) throw new Error("User not in game")
             if( game.state != Game.states.TURN ) throw new Error("Turn not allowed in that state")
             if( game.turn != callerId) throw new Error("Not your turn")
-            if( value === undefined || value !== parseInt(value)) throw new Error("Invalid value")
+            if( value === undefined) throw new Error("Invalid value")
             if( game.flipped && game.flipped.indexOf(value) > -1 ) throw new Error("Card already flipeed")
             if( game.flipped && game.flipped.length == 2 ) throw new Error("Cards already flipped")
             if( game.board[value] === null ) throw new Error("Card alread removed")
            
-          
-
-
             game.flipped = game.flipped || []
             game.flipped.push(value)
             
@@ -164,42 +161,46 @@ module.exports = {
             // Result
             //
             case actions.RESULT:
-            const match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
-            var p = null
-            if(match) { 
-                const cardValue = game.board[game.flipped[0]]
-                game.flipped.forEach( i => { game.board[i] = null  })  
-                p = game.players[callerId]
-                p.score += cardValue != config.bad_card_symbol_index ? 1 : -1
+            let match = false
+            if(game.flipped.length < 2) {
+                game.players[callerId].turnMissed =  game.players[callerId].turnMissed || 0 + 1
+            } else {
+                match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
+                var p = null
+                if(match) { 
+                    const cardValue = game.board[game.flipped[0]]
+                    game.flipped.forEach( i => { game.board[i] = null  })  
+                    p = game.players[callerId]
+                    p.score += cardValue != config.bad_card_symbol_index ? 1 : -1
+                }
             }
-     
-            setTimeout( async function() { 
-                if( game.cardsLeft() ) {
-                      module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
-                }
-                else {
-                    var winnerId = "tie"
-                    let players = Object.values(game.players)
-                    if( players[0].score !== players[1].score )
-                        winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
-                    players.forEach( player => { delete gamesByUserId[player.id] })
-                    games.splice(games.indexOf(game),1)
-                    if(winnerId == 'tie') {
-                        blockchain.payToUser( players[0].id, config.game_fee)
-                        blockchain.payToUser( players[1].id, config.game_fee)
-                    }
-                    else {
-                        blockchain.payToUser(winnerId, config.game_fee * 2)
-                    }
-                    game.state = Game.states.COMPLETED
-                    gameEmit( { gameId:game.id,action:actions.WIN, value:winnerId, result: game } )
-                }
-            }, 100);
             game.state = Game.states.RESULT
             gameEmit( { gameId:game.id,action:actions.RESULT, value: match, callerId: "server",result: game.userFriendly()} )
-            return match
-    
-            
+
+            var cardsLeft = game.cardsLeft()
+            if( cardsLeft.length > 2 || cardsLeft[0] != config.bad_card_symbol_index) {
+                module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
+            }
+            else {
+                var winnerId = "tie"
+                let players = Object.values(game.players)
+                if( players[0].score !== players[1].score )
+                    winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
+                players.forEach( player => { delete gamesByUserId[player.id] })
+                games.splice(games.indexOf(game),1)
+                if(winnerId == 'tie') {
+                    blockchain.payToUser( players[0].id, config.game_fee)
+                    blockchain.payToUser( players[1].id, config.game_fee)
+                }
+                else {
+                    blockchain.payToUser(winnerId, config.game_fee * 2)
+                }
+                game.state = Game.states.COMPLETED
+                gameEmit( { gameId:game.id,action:actions.WIN, value:winnerId, result: game } )
+            }
+           // }, 100);
+            break
+ 
             //
             // Leave
             //
