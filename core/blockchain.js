@@ -58,7 +58,7 @@ async function createAccount(wallet_address) {
   let createAccountBuilder = await masterAccount.buildCreateAccount({
     address: wallet_address,
     startingBalance: 100,
-    fee: 100,
+    fee: 0,
     memoText: "C" + createID(9)
   })
 

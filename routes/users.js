@@ -26,6 +26,7 @@ router.get('/login', async function (req, res, next) {
       wallet_address: config.master_public_address
     })
   } catch (error) {
+    console.log(error)
     next(error)
   }
 });
