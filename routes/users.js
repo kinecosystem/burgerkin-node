@@ -31,6 +31,18 @@ router.get('/login', async function (req, res, next) {
   }
 });
 
+router.post('/payGameFee', async function (req, res, next) {
+  const jso = req.body
+  try {
+   
+    let result = await blockchain.payGameFee( req.body )
+    res.send(result)
+  } catch (error) {
+    next(error)
+  }
+});
+
+
 router.get('/is-player-in-game', async function (req, res, next) {
   const public_key = req.query.public_key
   try {

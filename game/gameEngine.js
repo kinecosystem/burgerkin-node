@@ -178,7 +178,10 @@ module.exports = {
             gameEmit( { gameId:game.id,action:actions.RESULT, value: match, callerId: "server",result: game.userFriendly()} )
 
             var cardsLeft = game.cardsLeft()
-            if( cardsLeft.length > 2 || cardsLeft[0] != config.bad_card_symbol_index) {
+           
+            console.log("cards left", cardsLeft)
+           
+            if( cardsLeft.length > 2 || ( cardsLeft[0] && cardsLeft[0] != config.bad_card_symbol_index && cardsLeft[0] )) {
                 module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
             }
             else {

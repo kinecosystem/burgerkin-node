@@ -7,12 +7,16 @@
  * @author Oren Zakay.
  */
 
-const KinClient = require('@kinecosystem/kin-sdk-node').KinClient;
-const Environment = require('@kinecosystem/kin-sdk-node').Environment;
-const config = require('../config')
 
+const { KinClient, Transaction} = require('@kinecosystem/kin-sdk-node')
+const Environment = require('@kinecosystem/kin-sdk-node').Environment;
+const XdrTransaction = require('@kinecosystem/kin-base').Transaction;
+const config = require('../config')
 const client = new KinClient(Environment.Testnet);
 
+setTimeout( ()=>{
+
+},3000)
 let masterAccount
 
 async function getMasterAccount() {
@@ -34,6 +38,7 @@ async function isAccountExisting(wallet_address) {
     return false
   } 
 }
+//console.log(Environment.Testnet.passphrase)
 
 async function validateTransaction(transactionId) {
   try {
@@ -68,13 +73,25 @@ async function createAccount(wallet_address) {
   console.log("createAccount transaction id  -> ", id)
 }
 
+async function payGameFee(walletPayload) {
+    try {
+      const account = await getMasterAccount()
+      const whitelistTx = await account.whitelistTransaction(walletPayload)
+     // const xdrTransaction = new XdrTransaction(whitelistTx)
+     // const txRecord = await client._server.submitTransaction(xdrTransaction)
+     // console.log(txRecord.hash)
+      return whitelistTx
+    } catch(error) {
+        throw error
+    }
+}
 async function payToUser(wallet_address, amount) {
-  //console.log("payToUser -> " + wallet_address + " with amount = " + amount)
+  console.log("payToUser -> " + wallet_address + " with amount = " + amount)
   const masterAccount = await getMasterAccount()
   const transactionBuilder = await masterAccount.buildSendKin({
     address: wallet_address,
     amount: amount,
-    fee: 100,
+    fee: 0,
     memoText: createID(10)
   })
 
@@ -96,5 +113,6 @@ module.exports = {
   validateTransaction,
   isAccountExisting,
   createAccount,
-  payToUser
+  payToUser,
+  payGameFee
 }
