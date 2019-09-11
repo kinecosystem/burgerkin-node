@@ -127,6 +127,7 @@ module.exports = {
             
             //Set turn timout 
             game.stateTimeout = new Date().getTime() + config.turn_timeout
+            game.stateTotalTimeout = config.turn_timeout
             timerByGameId[game.id] = setTimeout( async () => {
                 delete timerByGameId[game.id]
                 module.exports.doAction({ action:actions.RESULT, callerId:callerId } )

@@ -35,7 +35,8 @@ module.exports = function (server,options,cb) {
                 let value = {
                     name: socket.handshake.query.name,
                     transactionId: socket.handshake.query.transactionId,
-                    facebookId: socket.handshake.query.facebookId
+                    facebookId: socket.handshake.query.facebookId,
+                    avatar: socket.handshake.query.avatar
                 }
                
                 let game = await doAction({ action:actions.JOIN, callerId:socket.handshake.query.token, value, socket })
