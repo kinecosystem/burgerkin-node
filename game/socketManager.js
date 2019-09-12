@@ -25,7 +25,6 @@ eventEmitter.on("action",( {gameId,action,callerId,value, result} ) => {
 module.exports = function (server,options,cb) {
     io = require('socket.io')(server)
     io.on('connection', async function (socket,next,a) {
-        //console.log("Connecting",socket.handshake.query.token, socket.handshake.query.name)
         if (socket.handshake.query && 
             socket.handshake.query.token &&
             socket.handshake.query.token != 'undefined' &&
@@ -42,12 +41,10 @@ module.exports = function (server,options,cb) {
                 let game = await doAction({ action:actions.JOIN, callerId:socket.handshake.query.token, value, socket })
                 socket.gameId = game.id
                 socket.join(game.id)
-                console.log("joining to",game.id)
                 socket.token = socket.handshake.query.token
                 io.to(game.id).emit("action",{action:actions.JOIN, callerId:socket.token,value,result:game}) 
             }
             catch(error) {
-                console.log("*** error",error)
                 socket.disconnect()
             }
         } else {

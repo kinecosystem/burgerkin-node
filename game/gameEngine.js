@@ -128,6 +128,7 @@ module.exports = {
             //Set turn timout 
             game.stateTimeout = new Date().getTime() + config.turn_timeout
             game.stateTotalTimeout = config.turn_timeout
+
             timerByGameId[game.id] = setTimeout( async () => {
                 delete timerByGameId[game.id]
                 module.exports.doAction({ action:actions.RESULT, callerId:callerId } )
@@ -180,7 +181,7 @@ module.exports = {
 
             var cardsLeft = game.cardsLeft()
            
-            console.log("cards left", cardsLeft)
+          
            
             if( cardsLeft.length > 2 || ( cardsLeft[0] && cardsLeft[0] != config.bad_card_symbol_index && cardsLeft[0] )) {
                 module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })

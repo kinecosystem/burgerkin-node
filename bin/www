@@ -96,12 +96,12 @@ function onListening() {
 const figlet = require('figlet');
 process.stdout.write('\033c');
 process.stdout.write('\x1Bc'); 
-// let result = figlet("Burger Kin",(error,result) => {
-//   console.log('\n\n'+result)
-//   console.log("written by Oren Zakay and Alon Genosar, Kin.org\n\nconfig:")
-//   jclrz(config)
-//   console.log('\n')
+let result = figlet("Burger Kin",(error,result) => {
+  console.log('\n\n'+result)
+  console.log("written by Oren Zakay and Alon Genosar, Kin.org\n\nconfig:")
+  jclrz(config)
+  console.log('\n')
   
-// })
-console.log("config",config)
+})
+
 require('../game/socketManager')(server)
