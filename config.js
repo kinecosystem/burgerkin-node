@@ -22,5 +22,5 @@ module.exports = { master_public_address: process.env.hasOwnProperty('master_pub
                    pre_result_timeout:200,
                    result_timout:2000,
                    server_version:0.1,
-                   turn_timeout: process.env.hasOwnProperty('turn_timeout') ? parseInt(process.env.turn_timeout) : 5000
+                   turn_timeout: process.env.hasOwnProperty('turn_timeout') ? parseInt(process.env.turn_timeout) : 10000
                 }

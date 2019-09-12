@@ -155,8 +155,10 @@ module.exports = {
            
             game.flipped = game.flipped || []
             game.flipped.push(value)
-            
+        
+
             if( game.flipped.length == 2 ) {
+                clearTimeout( timerByGameId[game.id] )
                 setTimeout( async function() { 
                     module.exports.doAction({ action: actions.RESULT, callerId })
                 }, 1500 );
