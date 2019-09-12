@@ -38,6 +38,10 @@ module.exports = {
         return gamesByUserId[callerId] !== undefined
     }
     ,reset: () => {
+        timerByGameId.forEach( timer => {
+            clearTimeout( timer )
+        })
+        timerByGameId = {}
         games = []
         gamesByUserId = {}
     }
