@@ -14,8 +14,14 @@ module.exports = { master_public_address: process.env.hasOwnProperty('master_pub
                    board_height: process.env.hasOwnProperty('board_height') ? parseInt(process.env.board_height) : 5,
                    monitor_tables: process.env.hasOwnProperty('monitor_tables') ? parseInt(process.env.monitor_tables) : false,
                    monitor_tables_interval: process.env.hasOwnProperty('monitor_tables_interval') ? parseInt(process.env.monitor_tables_interval) : 2000,
-                   game_fee: process.env.hasOwnProperty('game_fee') ? parseFloat(process.env.game_fee) : 10,
+                   game_fee: process.env.hasOwnProperty('game_fee') ? parseFloat(process.env.game_fee) : 5,
                    bad_card_symbol_index: 1,
                    total_bad_card_pairs: 1,
-                   flipped_card_symbol_index: 0
-                };
+                   flipped_card_symbol_index: 0,
+                   transaction_experation_in_sec: 10,
+                   pre_result_timeout:200,
+                   result_timout:2000,
+                   server_version:0.1,
+                   turn_timeout: process.env.hasOwnProperty('turn_timeout') ? parseInt(process.env.turn_timeout) : 10 * 1000,
+                   totalChannels: process.env.hasOwnProperty('totalChannels') ? parseInt(process.env.totalChannels) : 10
+                }

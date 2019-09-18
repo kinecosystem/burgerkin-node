@@ -15,17 +15,18 @@ for(var i = 0; i < config.board_width * config.board_height / 2.0; i++) {
     symbols.push(i + 1)
     symbols.push(i + 1)
 }
-const states = Object.freeze({ PENDING: 'pending', PLAYING: 'playing', COMPLETED: 'completed' }) 
+const states = Object.freeze({ PENDING: 'pending', STARTING:'starting', TURN: 'turn', RESULT: 'result', COMPLETED: 'completed' }) 
 class Game {
 
     static get states() { return states }
     
     constructor() {
         this.id = newId(5)
-        this.state = 'pending'
+        this.state = states.PENDING
         this.players = {}
         this.flipped = []
         this.turn = null
+        this.stateValue = null
         this.boardSize = [config.board_width,config.board_height]
         this.board = this.shuffle(JSON.parse(JSON.stringify(symbols)))
     }
@@ -46,12 +47,11 @@ class Game {
         let cpy = JSON.parse(JSON.stringify(this))
         cpy.board = cpy.board.map( item => { return item == null ? null : Math.min(item,0) } )
         this.flipped.forEach( index => {  cpy.board[index] = this.board[index] });
-        delete cpy.flipped
         return cpy
     }
    
     cardsLeft() {
-        return this.board.filter( item => { return item != null }).length
+        return this.board.filter( item => { return item != null })
     }
     
 }

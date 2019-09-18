@@ -13,9 +13,9 @@ const Game = require('./Game')
 const Player = require('./Player')
 const blockchain = require('../core/blockchain')
 const events = require('events')
-
 const Spinner = require('cli-spinner').Spinner;
 const spinner = new Spinner("Monitoring Games")
+const timerByGameId = {}
 spinner.setSpinnerString(2)
 
 //ENUMS
@@ -26,18 +26,22 @@ var games = []
 var gamesByUserId = {}
 
 //Utils
-function gameEmit( {gameId, action, sender = "server", callerId, value } ) {
-    module.exports.eventEmitter.emit('action', { action:action, gameId:gameId, callerId:callerId, value:value })
+function gameEmit( {gameId, action, sender = "server", callerId, value, result } ) {
+    module.exports.eventEmitter.emit('action', { action:action, gameId:gameId, callerId:callerId, value:value, result:result })
 }
 
 //API
 module.exports = {
     eventEmitter: new events.EventEmitter()
     ,actions: actions
-    ,isInGame(callerId) {
-        return (gamesByUserId[callerId])
+    ,isPlayerInGame(callerId) {
+        return gamesByUserId[callerId] !== undefined
     }
     ,reset: () => {
+        timerByGameId.forEach( timer => {
+            clearTimeout( timer )
+        })
+        timerByGameId = {}
         games = []
         gamesByUserId = {}
     }
@@ -52,14 +56,13 @@ module.exports = {
         }, interval);
     }
     ,doAction: async ({action,callerId,value}) => { 
-        if(!config.monitor_tables)
-            console.log("[gameEngine] doAction",{action:action,callerId:callerId,value:value})
+       // if(!config.monitor_tables)
+         //   console.log("[gameEngine] doAction",{action:action,callerId:callerId,value:value})
 
         if( !callerId ) throw new Error("Missing callerId")
         var game = gamesByUserId[callerId]
 
         switch (action) {
-
             //
             // Recover
             //
@@ -71,45 +74,71 @@ module.exports = {
             //
             // Join
             //
-            case actions.JOIN:
-            const result = await blockchain.isAccountExisting(callerId)
-            if(!result) throw new Error("Invalid public id")
-         
-            game = game || games.filter( game => game.state == Game.states.PENDING )[0] || new Game()
+            case actions.JOIN: 
+            if(game)
+                return game.userFriendly()
+            
+            //Validate
+            if( !value ) throw new Error("Missing transaction id" )
+            if( !value.name ) throw new Error("Missing name" ) 
+            //if( !value.transactionId ) throw new Error("Missing transaction id" ) 
+            if(!await blockchain.isAccountExisting(callerId) ) throw new Error("Invalid public id")
+            
+            //Validate transaction
+            await !blockchain.validateTransaction(value.transactionId)
+            
+            //Check for pending games
+            game = games.filter( game => game.state == Game.states.PENDING && Object.keys(game.players).length < 2 )[0] || new Game()
+           
+            //Push game to games list if not already there
             if(games.indexOf(game) < 0 )
                 games.push(game)
             
-            // If new game created , check player's transaction
-            if( game.players.length == 0 ) {
-                if( !value ) throw new Error("Missing transaction id")
-                if( await !blockchain.validateTransaction(value))
-                    throw new Error("Invalid transaction Id")
-            }
-            game.players[callerId] = new Player( { id:callerId, name:value } )
+            //Add player to game object
+            game.players[callerId] = new Player( { id:callerId, name:value.name,facebookId: value.facebookId,avatar: value.avatar } )
+            
+            //Index games by player
             gamesByUserId[callerId] = game
+           
+            //Change state to starting if two player's has joind
+             if( Object.keys(game.players).length == 2 )
+                game.state = Game.states.STARTING
 
-            game = game.userFriendly()
-            if( game.state == Game.states.PENDING && Object.keys(game.players).length == 2 ) {
+            //Start game
+            if( game.state == Game.states.STARTING ) {
                 setTimeout( async function() {
-                    let result = await module.exports.doAction({ action:actions.TURN, callerId:callerId } )
-                    gameEmit( { gameId:game.id, action:actions.TURN, value:result, callerId:callerId } )
+                    module.exports.doAction({ action:actions.TURN, callerId:callerId } )
                 }, 1000);
             }
-            return game
+            return game.userFriendly()
         
             //
             // Turn
             //
             case actions.TURN:
             if(!game) throw new Error("User not in game")
-            if(game.state != Game.states.PENDING && game.state != Game.states.PLAYING ) throw new Error("Turn not allowed")
-        
+            if(game.state != Game.states.STARTING && game.state != Game.states.TURN  && game.state != Game.states.RESULT ) throw new Error("Turn not allowed")
+           
+            //Clear turn timeout
+            clearTimeout( timerByGameId[game.id])
+            delete game.stateTimeout
+           
             const playersId = Object.keys(game.players)
             const i = playersId.indexOf(game.turn)
-            game.turn = playersId[ (i + 1) % playersId.length]
-            game.state = Game.states.PLAYING
+            game.turn = value || playersId[ (i + 1) % playersId.length]
+            game.state = Game.states.TURN
             game.flipped = []
-            return game.turn
+            
+            //Set turn timout 
+            game.stateTimeout = new Date().getTime() + config.turn_timeout
+            game.stateTotalTimeout = config.turn_timeout
+
+            timerByGameId[game.id] = setTimeout( async () => {
+                delete timerByGameId[game.id]
+                module.exports.doAction({ action:actions.RESULT, callerId:callerId } )
+            },config.turn_timeout )
+            gameEmit({ gameId:game.id,action:actions.TURN, value:value,result: game.userFriendly() } )
+            return game.userFriendly()
         
             //
             // Flip
@@ -117,75 +146,89 @@ module.exports = {
             case actions.FLIP:
             value = parseInt(value)
             if( !game ) throw new Error("User not in game")
-            if( game.state != Game.states.PLAYING ) throw new Error("Turn not allowed in that state")
+            if( game.state != Game.states.TURN ) throw new Error("Turn not allowed in that state")
             if( game.turn != callerId) throw new Error("Not your turn")
-            if( value === undefined || value !== parseInt(value)) throw new Error("Invalid value")
+            if( value === undefined) throw new Error("Invalid value")
             if( game.flipped && game.flipped.indexOf(value) > -1 ) throw new Error("Card already flipeed")
             if( game.flipped && game.flipped.length == 2 ) throw new Error("Cards already flipped")
             if( game.board[value] === null ) throw new Error("Card alread removed")
            
             game.flipped = game.flipped || []
             game.flipped.push(value)
-            
+        
+
             if( game.flipped.length == 2 ) {
+                clearTimeout( timerByGameId[game.id] )
                 setTimeout( async function() { 
-                    let result = await module.exports.doAction({action:actions.RESULT,callerId:callerId})
-                    gameEmit( { gameId:game.id,action:actions.RESULT, value:result,callerId:callerId } )
-                }, 1000);
-            }   
-            return { position:value, symbol:game.board[value]}
+                    module.exports.doAction({ action: actions.RESULT, callerId })
+                }, 1500 );
+            }  
+            return game.userFriendly()
            
             //
             // Result
             //
             case actions.RESULT:
-            const match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
-            var p = null
-            if(match) { 
-                const cardValue = game.board[game.flipped[0]]
-                game.flipped.forEach( i => { game.board[i] = null  })  
-                p = game.players[callerId]
-                p.score = cardValue != config.bad_card_symbol_index ? p.score + 1 : -1
+            let match = false
+            if(game.flipped.length < 2) {
+                game.players[callerId].turnMissed =  game.players[callerId].turnMissed || 0 + 1
+            } else {
+                match = game.flipped.length == 2 && game.board[game.flipped[0]] === game.board[game.flipped[1] ]
+                var p = null
+                if(match) { 
+                    const cardValue = game.board[game.flipped[0]]
+                    game.flipped.forEach( i => { game.board[i] = null  })  
+                    p = game.players[callerId]
+                    p.score += cardValue != config.bad_card_symbol_index ? 1 : -1
+                }
             }
-            
-            setTimeout( async function() { 
-                if( game.cardsLeft() > 1 && game.players[callerId].score > -1 ) {
-                    let result = await module.exports.doAction({action:actions.TURN,callerId:callerId})
-                    gameEmit( { gameId:game.id,action:actions.TURN, value:result } )
+            game.state = Game.states.RESULT
+            gameEmit( { gameId:game.id,action:actions.RESULT, value: match, callerId: "server",result: game.userFriendly()} )
+
+            var cardsLeft = game.cardsLeft()
+           
+          
+           
+            if( cardsLeft.length > 2 || ( cardsLeft[0] && cardsLeft[0] != config.bad_card_symbol_index && cardsLeft[0] )) {
+                module.exports.doAction({ action: actions.TURN, callerId: callerId, value: match ? callerId : undefined })
+            }
+            else {
+                var winnerId = "tie"
+                let players = Object.values(game.players)
+                if( players[0].score !== players[1].score )
+                    winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
+                players.forEach( player => { delete gamesByUserId[player.id] })
+                games.splice(games.indexOf(game),1)
+                if(winnerId == 'tie') {
+                    blockchain.payToUser( players[0].id, config.game_fee)
+                    blockchain.payToUser( players[1].id, config.game_fee)
                 }
                 else {
-                    let result = await module.exports.doAction({action:actions.WIN,callerId:callerId})
-                    gameEmit( { gameId:game.id,action:actions.WIN, value:result } )
+                    blockchain.payToUser(winnerId, config.game_fee * 2)
                 }
-            }, 3000);
-            return  { match:match, callerId:callerId, positions:game.flipped,player:p}
-    
-            //
-            // Win
-            //
-            case actions.WIN:
-            let players = Object.values(game.players)
-            var winnerId = players[0].score > players[1].score ? players[0].id : players[1].id
-            players.forEach( player => { delete gamesByUserId[player.id] })
-            games.splice(games.indexOf(game),1)
-            blockchain.payToUser(winnerId,config.game_fee)
-            return winnerId
+                game.state = Game.states.COMPLETED
+                gameEmit( { gameId:game.id,action:actions.WIN, value:winnerId, result: game } )
+            }
+           // }, 100);
             break
-    
+ 
             //
             // Leave
             //
             case actions.LEAVE:
             if( game && game.state == Game.states.PENDING ) {
+
                 delete game.players[callerId]
                 delete gamesByUserId[callerId]
                 if(!Object.keys(game.players).length) 
                     games.splice(games.indexOf(game),1)
+            
+                blockchain.payToUser(callerId, config.game_fee )
             }
             break
 
             default:
-            throw new Error("Action",action," not supported")
+            throw new Error("Action",action,"not supported")
         }
     } 
 }
