@@ -56,8 +56,8 @@ module.exports = {
         }, interval);
     }
     ,doAction: async ({action,callerId,value}) => { 
-        if(!config.monitor_tables)
-            console.log("[gameEngine] doAction",{action:action,callerId:callerId,value:value})
+       // if(!config.monitor_tables)
+         //   console.log("[gameEngine] doAction",{action:action,callerId:callerId,value:value})
 
         if( !callerId ) throw new Error("Missing callerId")
         var game = gamesByUserId[callerId]

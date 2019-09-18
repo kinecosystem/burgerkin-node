@@ -23,6 +23,7 @@ eventEmitter.on("action",( {gameId,action,callerId,value, result} ) => {
    
 // API
 module.exports = function (server,options,cb) {
+    console.log("Starting socket manager")
     io = require('socket.io')(server)
     io.on('connection', async function (socket,next,a) {
         if (socket.handshake.query && 

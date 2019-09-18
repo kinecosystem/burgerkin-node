@@ -4,30 +4,37 @@
  *
  * Desc
  *
- * @author Oren Zakay.
+ * @author Oren Zakay, Alon Genosar
  */
 
-
-const { KinClient, Transaction} = require('@kinecosystem/kin-sdk-node')
-const Environment = require('@kinecosystem/kin-sdk-node').Environment;
-const XdrTransaction = require('@kinecosystem/kin-base').Transaction;
+const { KinClient, Transaction, Environment, Channels } = require('@kinecosystem/kin-sdk-node')
 const config = require('../config')
 const client = new KinClient(Environment.Testnet);
-
-setTimeout( ()=>{
-
-},3000)
 let masterAccount
 
-async function getMasterAccount() {
-  if (!masterAccount) {
-    masterAccount = await client.createKinAccount({
-      seed: config.master_seed,
-      appId: config.appId
-    });
-  }
-  return masterAccount
+async function init() {
+  console.log("Creating channels")
+  let keepers = await Channels.createChannels({
+    environment: Environment.Testnet,
+    baseSeed: config.master_seed,
+    salt: "Dubon Haya Po",
+    channelsCount: config.totalChannels,
+    startingBalance: 0
+  })
+ 
+  let keys = keepers.map( item => {
+      return item.seed
+  })
+  console.log("Creating master account")
+  masterAccount = await client.createKinAccount({
+    seed: config.master_seed,
+    appId: config.appId,
+    channelSecretKeys:keys
+  });
+  console.log("Channels created succsesfully")
 }
+
+
 
 async function isAccountExisting(wallet_address) {
   try {
@@ -58,8 +65,6 @@ async function validateTransaction(transactionId) {
 
 async function createAccount(wallet_address) {
   console.log("buildCreateAccount -> " + wallet_address)
-  // Sign the account creation transaction
-  const masterAccount = await getMasterAccount()
   let createAccountBuilder = await masterAccount.buildCreateAccount({
     address: wallet_address,
     startingBalance: 100,
@@ -73,30 +78,25 @@ async function createAccount(wallet_address) {
   console.log("createAccount transaction id  -> ", id)
 }
 
-async function payGameFee(walletPayload) {
+async function whitelistTransaction(walletPayload) {
     try {
-      const account = await getMasterAccount()
-      const whitelistTx = await account.whitelistTransaction(walletPayload)
-     // const xdrTransaction = new XdrTransaction(whitelistTx)
-     // const txRecord = await client._server.submitTransaction(xdrTransaction)
-     // console.log(txRecord.hash)
+      const whitelistTx = await masterAccount.whitelistTransaction(walletPayload)
       return whitelistTx
     } catch(error) {
         throw error
     }
 }
 async function payToUser(wallet_address, amount) {
-  console.log("payToUser -> " + wallet_address + " with amount = " + amount)
-  const masterAccount = await getMasterAccount()
-  const transactionBuilder = await masterAccount.buildSendKin({
-    address: wallet_address,
-    amount: amount,
-    fee: 0,
-    memoText: createID(10)
+    masterAccount.channelsPool.acquireChannel( async channel => {
+      const transactionBuilder = await masterAccount.buildSendKin({
+        address: wallet_address,
+        amount: amount,
+        fee: 0,
+        memoText: createID(10),
+        channel: channel
+      })
+      return await masterAccount.submitTransaction(transactionBuilder)
   })
-
-  await masterAccount.submitTransaction(transactionBuilder)
-  console.log("payToUser submitTransaction -> ", transactionBuilder)
 }
 
 function createID(length) {
@@ -114,5 +114,6 @@ module.exports = {
   isAccountExisting,
   createAccount,
   payToUser,
-  payGameFee
+  whitelistTransaction,
+  init
 }

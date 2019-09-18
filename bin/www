@@ -101,7 +101,10 @@ let result = figlet("Burger Kin",(error,result) => {
   console.log("written by Oren Zakay and Alon Genosar, Kin.org\n\nconfig:")
   jclrz(config)
   console.log('\n')
-  
+  start()
 })
 
-require('../game/socketManager')(server)
+ const start = async () => {
+  await require('../core/blockchain').init()
+  require('../game/socketManager')(server)
+}

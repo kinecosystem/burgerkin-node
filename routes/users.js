@@ -31,11 +31,11 @@ router.get('/login', async function (req, res, next) {
   }
 });
 
-router.post('/payGameFee', async function (req, res, next) {
+router.post('/whitelistTransaction', async function (req, res, next) {
   const jso = req.body
   try {
    
-    let result = await blockchain.payGameFee( req.body )
+    let result = await blockchain.whitelistTransaction( req.body )
     res.send(result)
   } catch (error) {
     next(error)
