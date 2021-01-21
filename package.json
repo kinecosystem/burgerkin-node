@@ -19,7 +19,7 @@
     "jade": "~1.11.0",
     "json-colorz": "^0.2.7",
     "morgan": "~1.9.1",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.4.0",
     "uuid-pure": "^1.0.10"
   }
 }
